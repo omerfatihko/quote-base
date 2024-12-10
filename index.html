@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote-Base</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Quote-Base</h1>
+        <p>Manage your favorite book quotes with ease. Add, search, and edit quotes!</p>
+    </header>
+
+    <main>
+        <!-- Form to Add New Quotes -->
+        <section id="add-quote-section">
+            <h2>Add a New Quote</h2>
+            <form id="add-quote-form">
+                <label for="bookSeries">Book Series:</label>
+                <input type="text" id="bookSeries" name="bookSeries" list="series-list" placeholder="Optional">
+                <datalist id="series-list"></datalist>
+
+                <label for="bookTitle">Book Title <span class="required">*</span>:</label>
+                <input type="text" id="bookTitle" name="bookTitle" list="title-list" required>
+                <datalist id="title-list"></datalist>
+
+                <label for="characters">Characters:</label>
+                <input type="text" id="characters" name="characters" list="characters-list" placeholder="Optional">
+                <datalist id="characters-list"></datalist>
+
+                <label for="quote">Quote <span class="required">*</span>:</label>
+                <textarea id="quote" name="quote" required></textarea>
+
+                <label for="author">Author <span class="required">*</span>:</label>
+                <input type="text" id="author" name="author" list="author-list" required>
+                <datalist id="author-list"></datalist>
+
+                <button type="submit">Add Quote</button>
+            </form>
+        </section>
+
+        <section id="edit-quote-section" style="display: none;">
+            <h2>Edit Quote</h2>
+            <form id="edit-quote-form">
+                <label for="editBookSeries">Book Series:</label>
+                <input type="text" id="editBookSeries" name="bookSeries" list="series-list">
+        
+                <label for="editBookTitle">Book Title <span class="required">*</span>:</label>
+                <input type="text" id="editBookTitle" name="bookTitle" list="title-list" required>
+        
+                <label for="editCharacters">Characters:</label>
+                <input type="text" id="editCharacters" name="characters" list="characters-list">
+        
+                <label for="editQuote">Quote <span class="required">*</span>:</label>
+                <textarea id="editQuote" name="quote" required></textarea>
+        
+                <label for="editAuthor">Author <span class="required">*</span>:</label>
+                <input type="text" id="editAuthor" name="author" list="author-list" required>
+        
+                <button type="submit">Save Changes</button>
+                <button type="button" id="delete-quote">Delete Quote</button>
+                <button type="button" id="cancel-edit">Cancel</button>
+            </form>
+        </section>
+        
+
+        <!-- Search and Quotes Table -->
+        <section id="quote-list-section">
+            <h2>Saved Quotes</h2>
+
+            <div id="search-container">
+                <label for="search">Search:</label>
+                <input type="text" id="search" placeholder="Enter keyword...">
+                <select id="search-field">
+                    <option value="global">All Fields</option>
+                    <option value="bookSeries">Book Series</option>
+                    <option value="bookTitle">Book Title</option>
+                    <option value="characters">Characters</option>
+                    <option value="quote">Quote</option>
+                    <option value="author">Author</option>
+                </select>
+            </div>
+
+            <table id="quotes-table">
+                <thead>
+                    <tr>
+                        <th>Book Series</th>
+                        <th>Book Title</th>
+                        <th>Characters</th>
+                        <th>Quote</th>
+                        <th>Author</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>Quote-Base &copy; 2024. Contact: your.email@example.com</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
