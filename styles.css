@@ -6,11 +6,17 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-image: url("images/bg-pawel-czerwinski-_x16XKBPBwE-unsplash.jpg"); /* Replace with "bg-pawel-czerwinski-_x16XKBPBwE-unsplash.jpg" if needed */
+    background-image: url("images/bg-pawel-czerwinski-_x16XKBPBwE-unsplash.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     color: #333;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Header Styling */
@@ -38,6 +44,12 @@ header p {
     margin: 1em 0;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#add-quote-form {
+    display: flex;
+    flex-direction: column;
+    
 }
 
 form label {
@@ -91,6 +103,18 @@ form input, form textarea, form select {
 }
 
 /* Table Styling */
+#quote-list-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#table-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #quotes-table {
     width: 90%;
     max-width: 1200px;
@@ -191,13 +215,75 @@ footer a:hover {
     transform: scale(1.2);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    body {
-        padding: 1em;
+/* Media Query: Tablet and smaller screens (max-width: 770px) */
+@media (max-width: 770px) {
+    #quotes-table, 
+    footer {
+        width: 100%; /* Take full width */
+        margin: 0; /* Remove side margins */
+        padding: 1em; /* Add consistent padding */
     }
 
-    #add-quote-section, #edit-quote-section, #quotes-table {
-        width: 100%;
+    #quotes-table th, #quotes-table td {
+        font-size: 0.9em; /* Reduce font size */
     }
+
+    /* Reduce button and input sizes */
+    form input, form textarea, form select {
+        font-size: 0.9em;
+        padding: 0.4em;
+    }
+
+    .common-button {
+        padding: 0.5em 1em; /* Smaller button sizes */
+    }
+}
+
+/* Media Query: Mobile Screens (max-width: 480px) */
+@media (max-width: 480px) {
+    body {
+        font-size: 0.9em; /* Scale down font sizes globally */
+    }
+
+    header h1 {
+        font-size: 1.8em; /* Smaller header font */
+    }
+
+    header p {
+        font-size: 1em;
+    }
+
+    #add-quote-section, 
+    #edit-quote-section {
+        padding: 0.8em;
+    }
+
+    /* Stack "Search" and dropdown for filtering */
+    #search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+    }
+
+    /* Reduce table font sizes further */
+    #quotes-table th, #quotes-table td {
+        font-size: 0.8em;
+        padding: 0.5em;
+    }
+
+    #pagination-controls button img {
+        width: 20px; /* Smaller icons for pagination */
+        height: 20px;
+    }
+
+    footer {
+        padding: 0.5em;
+        font-size: 0.8em;
+    }
+}
+
+/* Table: Enable horizontal scrolling for small screens */
+#quotes-table {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    display: block; /* Ensure it doesn't overflow */
 }

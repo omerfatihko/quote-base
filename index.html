@@ -21,26 +21,38 @@
         <section id="add-quote-section">
             <h2 class="gentium-book-plus-bold">Add a New Quote</h2>
             <form id="add-quote-form">
-                <label for="bookSeries">Book Series:</label>
-                <input type="text" id="bookSeries" name="bookSeries" list="series-list" placeholder="Optional">
-                <datalist id="series-list"></datalist>
+                <section>
+                    <label for="bookSeries">Book Series:</label>
+                    <input type="text" id="bookSeries" name="bookSeries" list="series-list" placeholder="Optional">
+                    <datalist id="series-list"></datalist>
+                </section>
 
-                <label for="bookTitle">Book Title <span class="required">*</span>:</label>
-                <input type="text" id="bookTitle" name="bookTitle" list="title-list" required>
-                <datalist id="title-list"></datalist>
+                <section>
+                    <label for="bookTitle">Book Title <span class="required">*</span>:</label>
+                    <input type="text" id="bookTitle" name="bookTitle" list="title-list" required>
+                    <datalist id="title-list"></datalist>
+                </section>
 
-                <label for="characters">Characters:</label>
-                <input type="text" id="characters" name="characters" list="characters-list" placeholder="Optional">
-                <datalist id="characters-list"></datalist>
+                <section>
+                    <label for="characters">Characters:</label>
+                    <input type="text" id="characters" name="characters" list="characters-list" placeholder="Optional">
+                    <datalist id="characters-list"></datalist>
+                </section>
 
-                <label for="quote">Quote <span class="required">*</span>:</label>
-                <textarea id="quote" name="quote" required></textarea>
+                <section>
+                    <label for="quote">Quote <span class="required">*</span>:</label>
+                    <textarea id="quote" name="quote" required></textarea>
+                </section>
 
-                <label for="author">Author <span class="required">*</span>:</label>
-                <input type="text" id="author" name="author" list="author-list" required>
-                <datalist id="author-list"></datalist>
+                <section>
+                    <label for="author">Author <span class="required">*</span>:</label>
+                    <input type="text" id="author" name="author" list="author-list" required>
+                    <datalist id="author-list"></datalist>
+                </section>
 
-                <button type="submit" class="common-button">Add Quote</button>
+                <section>
+                    <button type="submit" class="common-button">Add Quote</button>
+                </section>
             </form>
         </section>
 
@@ -71,36 +83,40 @@
 
         <!-- Search and Quotes Table -->
         <section id="quote-list-section">
-            <h2 class="gentium-book-plus-bold">Saved Quotes</h2>
+            <section>
+                <h2 class="gentium-book-plus-bold">Saved Quotes</h2>
 
-            <div id="search-container">
-                <label for="search">Search:</label>
-                <input type="text" id="search" placeholder="Enter keyword...">
-                <select id="search-field">
-                    <option value="global">All Fields</option>
-                    <option value="bookSeries">Book Series</option>
-                    <option value="bookTitle">Book Title</option>
-                    <option value="characters">Characters</option>
-                    <option value="quote">Quote</option>
-                    <option value="author">Author</option>
-                </select>
-            </div>
+                <div id="search-container">
+                    <label for="search">Search:</label>
+                    <input type="text" id="search" placeholder="Enter keyword...">
+                    <select id="search-field">
+                        <option value="global">All Fields</option>
+                        <option value="bookSeries">Book Series</option>
+                        <option value="bookTitle">Book Title</option>
+                        <option value="characters">Characters</option>
+                        <option value="quote">Quote</option>
+                        <option value="author">Author</option>
+                    </select>
+                </div>
+            </section>
 
-            <table id="quotes-table">
-                <thead>
-                    <tr>
-                        <th>Book Series</th>
-                        <th>Book Title</th>
-                        <th>Characters</th>
-                        <th>Quote</th>
-                        <th>Author</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be dynamically added here -->
-                </tbody>
-            </table>
+            <section id="table-section">
+                <table id="quotes-table">
+                    <thead>
+                        <tr>
+                            <th>Book Series</th>
+                            <th>Book Title</th>
+                            <th>Characters</th>
+                            <th>Quote</th>
+                            <th>Author</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>
+            </section>
         </section>
 
         <section id="pagination-controls">
@@ -125,7 +141,7 @@
             <a href="https://www.linkedin.com/in/omerfatihkonar/" target="_blank"><img src="images/linkedin.png" alt="LinkedIn"></a>
             <a href="mailto:omerfatihk@gmail.com"><img src="images/gmail.png" alt="Gmail"></a>
         </div>
-        <p class="gentium-book-plus-regular">Quote-Base &copy; 2024. Made by Omer Fatih Konar</p>
+        <p class="gentium-book-plus-regular">Quote-Base &copy; 2024. Made by Ömer Fatih Konar</p>
         <p>Licensed under the <a href="LICENSE.txt" target="_blank">MIT License</a>.</p>
         <p class="gentium-book-plus-regular">Background photo by <a href="https://unsplash.com/@pawel_czerwinski?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" target="_blank">Pawel Czerwinski</a> on <a href="https://unsplash.com/photos/a-close-up-of-a-pattern-of-wavy-shapes-_x16XKBPBwE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" target="_blank">Unsplash</a></p>
 
