@@ -1,8 +1,142 @@
+/* General Styling */
+body {
+    font-family: "Gentium Book Plus", serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image: url("images/bg-pawel-czerwinski-_x16XKBPBwE-unsplash.jpg"); /* Replace with "bg-pawel-czerwinski-_x16XKBPBwE-unsplash.jpg" if needed */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #333;
+}
+
+/* Header Styling */
+header {
+    text-align: center;
+    margin-top: 1em;
+}
+
+header h1 {
+    font-size: 2.5em;
+    color: #3A7CA5;
+}
+
+header p {
+    font-size: 1.2em;
+    color: #5C5C5C;
+}
+
+/* Add Quote Section */
+#add-quote-section {
+    width: 90%;
+    max-width: 800px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1.5em;
+    margin: 1em 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    color: #4A4A4A;
+}
+
+form input, form textarea, form select {
+    width: calc(100% - 1em); /* Adjust width to account for padding */
+    box-sizing: border-box; /* Include padding and border in width calculation */
+    padding: 0.5em;
+    margin-bottom: 1em;
+    border: 1px solid #C3C3C3;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.common-button {
+    background-color: #3A7CA5;
+    color: #FFF;
+    border: none;
+    padding: 0.7em 1.2em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.common-button:hover {
+    background-color: #2B5F7D;
+}
+
+/* Edit Quote Section */
+#edit-quote-section {
+    width: 90%;
+    max-width: 800px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1.5em;
+    margin: 1em 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.5s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+#edit-quote-section.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Table Styling */
+#quotes-table {
+    width: 90%;
+    max-width: 1200px;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#quotes-table th, #quotes-table td {
+    text-align: left;
+    padding: 0.8em;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+#quotes-table th {
+    cursor: pointer;
+    background-color: #3A7CA5;
+    color: white;
+    position: relative;
+}
+
+#quotes-table th:hover {
+    background-color: #2B5F7D;
+}
+
+#quotes-table tr:nth-child(even) {
+    background-color: #F9F9F9;
+}
+
+/* Highlight Sorted Column */
+#quotes-table th.sorted-asc::after {
+    content: " ▲";
+}
+
+#quotes-table th.sorted-desc::after {
+    content: " ▼";
+}
+
+/* Pagination Controls */
 #pagination-controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 1em;
+    margin-top: 1.5em 0;
     gap: 1em;
 }
 
@@ -15,4 +149,55 @@
 #pagination-controls button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Footer Styling */
+footer {
+    text-align: center;
+    margin: 1.5em 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1em;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+footer a {
+    text-decoration: none;
+    color: #3A7CA5;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: #2B5F7D;
+    text-decoration: underline;
+}
+
+#contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+#contact-links a img {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+}
+
+#contact-links a img:hover {
+    transform: scale(1.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 1em;
+    }
+
+    #add-quote-section, #edit-quote-section, #quotes-table {
+        width: 100%;
+    }
 }

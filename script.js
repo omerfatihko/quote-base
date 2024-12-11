@@ -5,8 +5,58 @@ document.addEventListener("DOMContentLoaded", () => {
     // Local storage key
     const storageKey = "quotesData";
 
-    // Load saved quotes on page load
+    // Pagination trackers
+    let currentPage = 1; // Tracks the current page
+    let itemsPerPage = 10; // Default items per page
+
+    const prevPageButton = document.getElementById("prev-page");
+    const nextPageButton = document.getElementById("next-page");
+    const itemsPerPageSelect = document.getElementById("items-per-page");
+
+    // Load saved quotes and update pagination on page load
     loadQuotes();
+
+    // Event listeners for pagination controls
+    prevPageButton.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPaginatedQuotes();
+        }
+    });
+
+    nextPageButton.addEventListener("click", () => {
+        const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
+        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPaginatedQuotes();
+        }
+    });
+
+    itemsPerPageSelect.addEventListener("change", () => {
+        itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
+        currentPage = 1; // Reset to the first page
+        renderPaginatedQuotes();
+    });
+
+    // Render paginated quotes
+    function renderPaginatedQuotes() {
+        const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
+        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+
+        // Calculate start and end index
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, quotes.length);
+
+        // Clear the table and render only the current page's quotes
+        quotesTableBody.innerHTML = "";
+        quotes.slice(startIndex, endIndex).forEach((quote) => appendQuoteToTable(quote));
+
+        // Update button states
+        prevPageButton.disabled = currentPage === 1;
+        nextPageButton.disabled = currentPage === totalPages;
+    }
 
     // Ensure the event listener is added only once
     if (!quoteForm.dataset.listenerAdded) {
@@ -20,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 appendQuoteToTable(newQuote);
                 updateDatalists();
                 quoteForm.reset(); // Clear the form
+                loadQuotes();
             }
         });
 
@@ -61,10 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Load all quotes from local storage and populate the table
     function loadQuotes() {
-        const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
-        // Clear the table body before appending rows
-        quotesTableBody.innerHTML = "";
-        quotes.forEach((quote) => appendQuoteToTable(quote));
+        renderPaginatedQuotes();
         updateDatalists();
     }
 
@@ -128,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // Show the edit section and populate fields
         editSection.style.display = "block";
+        editSection.classList.add("show"); // Add the class to make it visible
         document.getElementById("editBookSeries").value = quote.bookSeries || "";
         document.getElementById("editBookTitle").value = quote.bookTitle || "";
         document.getElementById("editCharacters").value = quote.characters || "";
@@ -149,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateQuoteInStorage(quote, updatedQuote);
                 loadQuotes(); // Refresh the table
                 editSection.style.display = "none"; // Hide edit form
+                editSection.classList.remove("show");
             }
         };
     
@@ -158,12 +208,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 deleteQuoteFromStorage(quote);
                 loadQuotes(); // Refresh the table
                 editSection.style.display = "none"; // Hide edit form
+                editSection.classList.remove("show");
             }
         };
     
         // Cancel editing
         cancelButton.onclick = () => {
             editSection.style.display = "none"; // Hide edit form
+            editSection.classList.remove("show");
         };
     }
     
@@ -245,6 +297,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (aValue > bValue) return currentSortOrder === "asc" ? 1 : -1;
             return 0;
         });
+
+        // Clear existing classes
+        document.querySelectorAll("#quotes-table th").forEach((th) => {
+            th.classList.remove("sorted-asc", "sorted-desc");
+        });
+
+        // Add sorted class to the current header
+        header.classList.add(currentSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
 
         // Save sorted quotes and re-render the table
         localStorage.setItem(storageKey, JSON.stringify(quotes));
