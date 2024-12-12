@@ -23,30 +23,30 @@
             <form id="add-quote-form">
                 <section>
                     <label for="bookSeries">Book Series:</label>
-                    <input type="text" id="bookSeries" name="bookSeries" list="series-list" placeholder="Optional">
+                    <input type="text" id="bookSeries" name="bookSeries" list="series-list" maxlength="100" placeholder="Optional">
                     <datalist id="series-list"></datalist>
                 </section>
 
                 <section>
                     <label for="bookTitle">Book Title <span class="required">*</span>:</label>
-                    <input type="text" id="bookTitle" name="bookTitle" list="title-list" required>
+                    <input type="text" id="bookTitle" name="bookTitle" list="title-list" maxlength="100" required>
                     <datalist id="title-list"></datalist>
                 </section>
 
                 <section>
                     <label for="characters">Characters:</label>
-                    <input type="text" id="characters" name="characters" list="characters-list" placeholder="Optional">
+                    <input type="text" id="characters" name="characters" list="characters-list" maxlength="150" placeholder="Optional">
                     <datalist id="characters-list"></datalist>
                 </section>
 
                 <section>
                     <label for="quote">Quote <span class="required">*</span>:</label>
-                    <textarea id="quote" name="quote" required></textarea>
+                    <textarea id="quote" name="quote" maxlength="1000" required></textarea>
                 </section>
 
                 <section>
                     <label for="author">Author <span class="required">*</span>:</label>
-                    <input type="text" id="author" name="author" list="author-list" required>
+                    <input type="text" id="author" name="author" list="author-list" maxlength="100" required>
                     <datalist id="author-list"></datalist>
                 </section>
 
@@ -61,19 +61,19 @@
             <h2 class="gentium-book-plus-bold">Edit Quote</h2>
             <form id="edit-quote-form">
                 <label for="editBookSeries">Book Series:</label>
-                <input type="text" id="editBookSeries" name="bookSeries" list="series-list">
+                <input type="text" id="editBookSeries" name="bookSeries" list="series-list" maxlength="100">
         
                 <label for="editBookTitle">Book Title <span class="required">*</span>:</label>
-                <input type="text" id="editBookTitle" name="bookTitle" list="title-list" required>
+                <input type="text" id="editBookTitle" name="bookTitle" list="title-list" maxlength="100" required>
         
                 <label for="editCharacters">Characters:</label>
-                <input type="text" id="editCharacters" name="characters" list="characters-list">
+                <input type="text" id="editCharacters" name="characters" list="characters-list" maxlength="150">
         
                 <label for="editQuote">Quote <span class="required">*</span>:</label>
-                <textarea id="editQuote" name="quote" required></textarea>
+                <textarea id="editQuote" name="quote" maxlength="1000" required></textarea>
         
                 <label for="editAuthor">Author <span class="required">*</span>:</label>
-                <input type="text" id="editAuthor" name="author" list="author-list" required>
+                <input type="text" id="editAuthor" name="author" list="author-list" maxlength="100" required>
         
                 <button type="submit" class="common-button">Save Changes</button>
                 <button type="button" id="delete-quote" class="common-button">Delete Quote</button>
@@ -117,12 +117,14 @@
                     </tbody>
                 </table>
             </section>
+            <p id="no-results" style="display: none; text-align: center; font-size: 1em; color: #555;">No quotes found.</p>
         </section>
 
         <section id="pagination-controls">
             <button id="prev-page" disabled>
                 <img src="images/left-arrow.png" alt="Previous" />
             </button>
+            <span id="page-info"></span>
             <select id="items-per-page">
                 <option value="10" selected>10</option>
                 <option value="25">25</option>

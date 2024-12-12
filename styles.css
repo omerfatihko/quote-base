@@ -87,12 +87,12 @@ form input, form textarea, form select {
 #edit-quote-section {
     width: 90%;
     max-width: 800px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(240, 228, 228, 0.8);
     padding: 1.5em;
     margin: 1em 0;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
     opacity: 0;
     visibility: hidden;
 }
@@ -100,6 +100,12 @@ form input, form textarea, form select {
 #edit-quote-section.show {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
+}
+
+#edit-quote-section.hide {
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Table Styling */
@@ -240,7 +246,7 @@ footer a:hover {
 }
 
 /* Media Query: Mobile Screens (max-width: 480px) */
-@media (max-width: 480px) {
+@media (max-width: 520px) {
     body {
         font-size: 0.9em; /* Scale down font sizes globally */
     }
@@ -258,6 +264,14 @@ footer a:hover {
         padding: 0.8em;
     }
 
+    #add-quote-section,
+    #edit-quote-section,
+    #quotes-table {
+        width: 95%;
+        max-width: none;
+        margin: 0;
+    }
+
     /* Stack "Search" and dropdown for filtering */
     #search-container {
         display: flex;
@@ -271,9 +285,17 @@ footer a:hover {
         padding: 0.5em;
     }
 
+    #quotes-table th:nth-child(1), #quotes-table td:nth-child(1) {
+        display: none;
+    }
+
     #pagination-controls button img {
         width: 20px; /* Smaller icons for pagination */
         height: 20px;
+    }
+
+    #pagination-controls select {
+        font-size: 0.9em;
     }
 
     footer {

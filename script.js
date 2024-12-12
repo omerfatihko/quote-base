@@ -53,6 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
         quotesTableBody.innerHTML = "";
         quotes.slice(startIndex, endIndex).forEach((quote) => appendQuoteToTable(quote));
 
+        // Update page info
+        const pageInfo = document.getElementById("page-info");
+        pageInfo.textContent = `${currentPage}/${totalPages}`;
+
         // Update button states
         prevPageButton.disabled = currentPage === 1;
         nextPageButton.disabled = currentPage === totalPages;
@@ -62,11 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!quoteForm.dataset.listenerAdded) {
         quoteForm.addEventListener("submit", (event) => {
             event.preventDefault();
-            console.log("Form submitted!");
+            //console.log("Form submitted!");
 
             const newQuote = getFormData();
-            if (newQuote) {
-                saveQuote(newQuote);
+            if (newQuote && saveQuote(newQuote)) {
                 appendQuoteToTable(newQuote);
                 updateDatalists();
                 quoteForm.reset(); // Clear the form
@@ -106,8 +109,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // Save a quote to local storage
     function saveQuote(quote) {
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        // Check for duplicates
+        const isDuplicate = quotes.some((q) =>
+            q.bookSeries === quote.bookSeries &&
+            q.bookTitle === quote.bookTitle &&
+            q.characters === quote.characters &&
+            q.quote === quote.quote &&
+            q.author === quote.author
+        );
+
+        if (isDuplicate) {
+            alert("This quote already exists!");
+            return false;
+        }
+
         quotes.push(quote);
         localStorage.setItem(storageKey, JSON.stringify(quotes));
+        return true;
     }
 
     // Load all quotes from local storage and populate the table
@@ -174,9 +193,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const deleteButton = document.getElementById("delete-quote");
         const cancelButton = document.getElementById("cancel-edit");
     
-        // Show the edit section and populate fields
+        // Show the edit section and add transition
         editSection.style.display = "block";
         editSection.classList.add("show"); // Add the class to make it visible
+        editSection.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // Populate fields
         document.getElementById("editBookSeries").value = quote.bookSeries || "";
         document.getElementById("editBookTitle").value = quote.bookTitle || "";
         document.getElementById("editCharacters").value = quote.characters || "";
@@ -196,9 +218,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
             if (confirm("Are you sure you want to save changes?")) {
                 updateQuoteInStorage(quote, updatedQuote);
-                loadQuotes(); // Refresh the table
-                editSection.style.display = "none"; // Hide edit form
+                loadQuotes(); // Refresh the table 
                 editSection.classList.remove("show");
+                editSection.classList.add("hide");
+                setTimeout(() => {
+                    editSection.style.display = "none"; // Hide edit form
+                    editSection.classList.remove("hide");
+                }, 500);
             }
         };
     
@@ -207,15 +233,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (confirm("Are you sure you want to delete this quote?")) {
                 deleteQuoteFromStorage(quote);
                 loadQuotes(); // Refresh the table
-                editSection.style.display = "none"; // Hide edit form
                 editSection.classList.remove("show");
+                editSection.classList.add("hide");
+                setTimeout(() => {
+                    editSection.style.display = "none"; // Hide edit form
+                    editSection.classList.remove("hide");
+                }, 500);
             }
         };
     
         // Cancel editing
         cancelButton.onclick = () => {
-            editSection.style.display = "none"; // Hide edit form
             editSection.classList.remove("show");
+            editSection.classList.add("hide");
+            setTimeout(() => {
+                editSection.style.display = "none"; // Hide edit form
+                editSection.classList.remove("hide");
+            }, 500);
         };
     }
     
@@ -257,6 +291,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Clear and re-render the table with filtered quotes
         quotesTableBody.innerHTML = "";
         filteredQuotes.forEach((quote) => appendQuoteToTable(quote));
+
+        // Show or hide "No Results Found" message
+        const noResultsMessage = document.getElementById("no-results");
+        noResultsMessage.style.display = filteredQuotes.length === 0 ? "block" : "none";
     }
 
     document.querySelectorAll("#quotes-table th").forEach((header) => {
@@ -310,5 +348,34 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem(storageKey, JSON.stringify(quotes));
         loadQuotes();
     }
-
 });
+
+function setupCharacterLimitIndicators() {
+    // Select all input and textarea fields with a maxlength attribute
+    const inputsWithLimits = document.querySelectorAll("input[maxlength], textarea[maxlength]");
+
+    inputsWithLimits.forEach((input) => {
+        const maxLength = parseInt(input.getAttribute("maxlength"), 10);
+
+        // Find the corresponding label for the input
+        const label = document.querySelector(`label[for="${input.id}"]`);
+        if (label) {
+            // Append a span to the label to show remaining characters
+            const remainingSpan = document.createElement("span");
+            remainingSpan.style.marginLeft = "10px";
+            remainingSpan.style.fontSize = "0.9em";
+            remainingSpan.style.color = "#666";
+            remainingSpan.textContent = `${maxLength} characters remaining`;
+            label.appendChild(remainingSpan);
+
+            // Update the span dynamically as the user types
+            input.addEventListener("input", () => {
+                const remaining = maxLength - input.value.length;
+                remainingSpan.textContent = `${remaining}/${maxLength} characters remaining`;
+            });
+        }
+    });
+}
+
+// Call this function after the DOM content has loaded
+document.addEventListener("DOMContentLoaded", setupCharacterLimitIndicators);
