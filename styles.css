@@ -38,7 +38,7 @@ header p {
 /* Add Quote Section */
 #add-quote-section {
     width: 90%;
-    max-width: 800px;
+    /*max-width: 800px;*/
     background-color: rgba(255, 255, 255, 0.8);
     padding: 1.5em;
     margin: 1em 0;
@@ -59,7 +59,7 @@ form label {
     color: #4A4A4A;
 }
 
-form input, form textarea, form select {
+form input, form textarea {
     width: calc(100% - 1em); /* Adjust width to account for padding */
     box-sizing: border-box; /* Include padding and border in width calculation */
     padding: 0.5em;
@@ -83,10 +83,16 @@ form input, form textarea, form select {
     background-color: #2B5F7D;
 }
 
+.character-limit {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
 /* Edit Quote Section */
 #edit-quote-section {
     width: 90%;
-    max-width: 800px;
+    /*max-width: 800px;*/
     background-color: rgba(240, 228, 228, 0.8);
     padding: 1.5em;
     margin: 1em 0;
@@ -95,6 +101,11 @@ form input, form textarea, form select {
     transition: opacity 0.5s ease, visibility 0.5s ease;
     opacity: 0;
     visibility: hidden;
+}
+
+.edit-quote-form {
+    display: flex;
+    flex-direction: column;
 }
 
 #edit-quote-section.show {
@@ -109,7 +120,7 @@ form input, form textarea, form select {
 }
 
 /* Table Styling */
-#quote-list-section {
+#table-search-section {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -122,12 +133,13 @@ form input, form textarea, form select {
 }
 
 #quotes-table {
-    width: 90%;
-    max-width: 1200px;
+    /*width: 90%;*/
+    /*max-width: 1200px;*/
     border-collapse: collapse;
     margin: 1.5em 0;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
@@ -159,6 +171,14 @@ form input, form textarea, form select {
 
 #quotes-table th.sorted-desc::after {
     content: " ▼";
+}
+
+/*No results found style*/
+#no-results {
+    display: none;
+    text-align: center;
+    font-size: 1em;
+    color: #555;
 }
 
 /* Pagination Controls */
@@ -227,7 +247,7 @@ footer a:hover {
     footer {
         width: 100%; /* Take full width */
         margin: 0; /* Remove side margins */
-        padding: 1em; /* Add consistent padding */
+        /*padding: 1em;  Add consistent padding */
     }
 
     #quotes-table th, #quotes-table td {

@@ -1,23 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const quoteForm = document.getElementById("add-quote-form");
-    const quotesTableBody = document.querySelector("#quotes-table tbody");
+    const inputForm = document.getElementById("add-quote-form");
+    const quoteTableBody = document.querySelector("#quotes-table tbody");
 
     // Local storage key
     const storageKey = "quotesData";
 
     // Pagination trackers
-    let currentPage = 1; // Tracks the current page
-    let itemsPerPage = 10; // Default items per page
+    let currentPage = 1;
+    let itemsPerPage = 10;
 
-    const prevPageButton = document.getElementById("prev-page");
+    const previousPageButton = document.getElementById("previous-page");
     const nextPageButton = document.getElementById("next-page");
     const itemsPerPageSelect = document.getElementById("items-per-page");
 
-    // Load saved quotes and update pagination on page load
-    loadQuotes();
+    renderTable();
 
-    // Event listeners for pagination controls
-    prevPageButton.addEventListener("click", () => {
+    itemsPerPageSelect.addEventListener("change", () => {
+        itemsPerPage = parseInt(itemsPerPageSelect.value);
+        currentPage = 1;
+        renderPaginatedQuotes();
+    });
+
+    previousPageButton.addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage--;
             renderPaginatedQuotes();
@@ -34,80 +38,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    itemsPerPageSelect.addEventListener("change", () => {
-        itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
-        currentPage = 1; // Reset to the first page
-        renderPaginatedQuotes();
-    });
-
-    // Render paginated quotes
     function renderPaginatedQuotes() {
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
         const totalPages = Math.ceil(quotes.length / itemsPerPage);
 
         // Calculate start and end index
-        const startIndex = (currentPage - 1) * itemsPerPage;
+        const startIndex = (currentPage - 1)*itemsPerPage;
         const endIndex = Math.min(startIndex + itemsPerPage, quotes.length);
 
-        // Clear the table and render only the current page's quotes
-        quotesTableBody.innerHTML = "";
-        quotes.slice(startIndex, endIndex).forEach((quote) => appendQuoteToTable(quote));
+        // Clear the table and only render current page
+        quoteTableBody.innerHTML = "";
+        quotes.slice(startIndex, endIndex).forEach((quote) => addQuoteToTable(quote));
 
         // Update page info
         const pageInfo = document.getElementById("page-info");
-        pageInfo.textContent = `${currentPage}/${totalPages}`;
+        pageInfo.textContent = `${currentPage}/${totalPages}`
 
         // Update button states
-        prevPageButton.disabled = currentPage === 1;
+        previousPageButton.disabled = currentPage === 1;
         nextPageButton.disabled = currentPage === totalPages;
+
+        characterLimitIndicator(); //to reset character limits
     }
 
-    // Ensure the event listener is added only once
-    if (!quoteForm.dataset.listenerAdded) {
-        quoteForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            //console.log("Form submitted!");
+    /**
+     * get data from form, add it to the local storage, render table
+     */
+    inputForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const quote = getFormData();
+        if (quote && setFormData(quote)) {
+            inputForm.reset();
+            console.log(quote);
+            renderTable();
+            //updateDataLists(); already in the renderTable function
+        };
+    });
 
-            const newQuote = getFormData();
-            if (newQuote && saveQuote(newQuote)) {
-                appendQuoteToTable(newQuote);
-                updateDatalists();
-                quoteForm.reset(); // Clear the form
-                loadQuotes();
-            }
-        });
-
-        // Mark listener as added
-        quoteForm.dataset.listenerAdded = true;
-    };
-
-    // Retrieve form data and validate fields
+    /**
+     * get the data from form
+     */
     function getFormData() {
-        const bookSeries = document.getElementById("bookSeries").value.trim();
-        const bookTitle = document.getElementById("bookTitle").value.trim();
-        const characters = document.getElementById("characters").value.trim();
-        const quote = document.getElementById("quote").value.trim();
-        const author = document.getElementById("author").value.trim();
+        const seriesInput = document.getElementById("book-series").value.trim();
+        const titleInput = document.getElementById("book-title").value.trim();
+        const charactersInput = document.getElementById("characters").value.trim();
+        const quoteInput = document.getElementById("quote").value.trim();
+        const authorInput = document.getElementById("author").value.trim();
 
-        // Debugging: Check values in console
-        console.log("Book Title:", bookTitle, "Quote:", quote, "Author:", author);
-
-        if (!bookTitle || !quote || !author) {
-            alert("Please fill in all required fields (Book Title, Quote, Author).");
+        if (!titleInput || !quoteInput || !authorInput) {
+            alert("Please fill in all required fields (Book title, quote, and author)");
             return null;
-        }
+        };
 
         return {
-            bookSeries: bookSeries || bookTitle, // Default to book title
-            bookTitle,
-            characters: characters || author, // Default to author name
-            quote,
-            author,
+            bookSeries: seriesInput || titleInput,
+            bookTitle: titleInput,
+            characters: charactersInput || authorInput,
+            quote: quoteInput,
+            author: authorInput,
         };
-    }
+    };
 
-    // Save a quote to local storage
-    function saveQuote(quote) {
+    /**
+     * set the data to local storage
+     */
+    function setFormData(quote) {
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
 
         // Check for duplicates
@@ -127,174 +122,199 @@ document.addEventListener("DOMContentLoaded", () => {
         quotes.push(quote);
         localStorage.setItem(storageKey, JSON.stringify(quotes));
         return true;
-    }
+    };
 
-    // Load all quotes from local storage and populate the table
-    function loadQuotes() {
-        renderPaginatedQuotes();
-        updateDatalists();
-    }
-
-    // Append a single quote to the table
-    function appendQuoteToTable(quote) {
+    /**
+     * add quote to the table
+     */
+    function addQuoteToTable(quote) {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${quote.bookSeries}</td>
-            <td>${quote.bookTitle}</td>
-            <td>${quote.characters}</td>
-            <td>${quote.quote}</td>
-            <td>${quote.author}</td>
-            <td>
-                <button class="edit-btn">Edit</button>
-            </td>
+        <td>${quote.bookSeries}</td>
+        <td>${quote.bookTitle}</td>
+        <td>${quote.characters}</td>
+        <td>${quote.quote}</td>
+        <td>${quote.author}</td>
+        <td>
+            <button class="edit-button">Edit</button>
+        </td>
         `;
-        quotesTableBody.appendChild(row);
+        quoteTableBody.appendChild(row);
 
-        // Add edit functionality
-        row.querySelector(".edit-btn").addEventListener("click", () => handleEdit(row, quote));
-    }
+        row.querySelector(".edit-button").addEventListener("click", () => handleEdit(quote));
+        row.querySelector(".edit-button").addEventListener("click", () => characterLimitIndicator());
+    };
 
-    // Update datalists for dynamic suggestions
-    function updateDatalists() {
+    function handleEdit(quote) {
+        console.log("old quote: ",quote)
+        const editSection = document.getElementById("edit-quote-section");
+        const editForm = document.getElementById("edit-quote-form");
+        const deleteButton = document.getElementById("delete-quote");
+        const cancelButton = document.getElementById("cancel-edit");
+
+        //show edit section
+        editSection.style.display = "block";
+        editSection.classList.add("show");
+        editSection.scrollIntoView({behavior: "smooth", block: "start"});
+
+        //populate edit section
+        document.getElementById("edit-book-series").value = quote.bookSeries;
+        document.getElementById("edit-book-title").value = quote.bookTitle;
+        document.getElementById("edit-characters").value = quote.characters;
+        document.getElementById("edit-quote").value = quote.quote;
+        document.getElementById("edit-author").value = quote.author;
+
+        //edit submit
+        editForm.onsubmit = (event) => {
+            event.preventDefault();
+            //get edited content
+            const editedSeriesInput = document.getElementById("edit-book-series").value.trim();
+            const editedTitleInput = document.getElementById("edit-book-title").value.trim();
+            const editedCharactersInput = document.getElementById("edit-characters").value.trim();
+            const editedQuoteInput = document.getElementById("edit-quote").value.trim();
+            const editedAuthorInput = document.getElementById("edit-author").value.trim();
+
+            //check for required fields (empty, only spaces etc)
+            if (!editedTitleInput || !editedQuoteInput || !editedAuthorInput) {
+                alert("Please fill in all requited fields (Book title, quote, and author)");
+                return;
+            }
+
+            //get the edited quote
+            const editedQuote = {
+                bookSeries: editedSeriesInput || editedTitleInput,
+                bookTitle: editedTitleInput,
+                characters: editedCharactersInput || editedAuthorInput,
+                quote: editedQuoteInput,
+                author: editedAuthorInput
+            }
+
+            //confirm edit
+            if (confirm("Are you sure you want to save changes?")) {
+                console.log("edited quote: ", editedQuote);
+                updateQuote(quote, editedQuote); //update quote
+                renderTable(); //re-render table
+                editSection.classList.remove("show");
+                editSection.classList.add("hide");
+                setTimeout(() => {
+                    editSection.style.display = "none"; //hide edit section
+                    editSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                }, 500);
+            };
+        };
+
+        //delete quote
+        deleteButton.onclick = () => {
+            if (confirm("Are you sure you want to delete this quote?")) {
+                console.log("deleted quote: ", quote);
+                deleteQuote(quote); //delete quote
+                renderTable(); //re-render table
+                editSection.classList.remove("show");
+                editSection.classList.add("hide");
+                setTimeout(() => {
+                    editSection.style.display = "none"; //hide edit section
+                    editSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                }, 500);
+                };
+        };
+
+        //cancel edit
+        cancelButton.onclick = () => {
+            editSection.classList.remove("show");
+            editSection.classList.add("hide");
+            setTimeout(() => {
+                editSection.style.display = "none"; //hide edit section
+                editSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+            }, 500);
+        };
+    };
+
+    function updateQuote(oldQuote, newQuote) {
+        const quotes = JSON.parse(localStorage.getItem(storageKey)) || []; //get quotes from local storage
+        const index = quotes.findIndex((q) => JSON.stringify(q) === JSON.stringify(oldQuote)); //find index of the old quote
+
+        if (index !== -1) {
+            quotes[index] = newQuote;
+            localStorage.setItem(storageKey, JSON.stringify(quotes));
+        };
+    };
+
+    function deleteQuote(quote) {
+        const quotes = JSON.parse(localStorage.getItem(storageKey)) || []; //get quotes from local storage
+        const updatedQuotes = quotes.filter((q) => JSON.stringify(q) !== JSON.stringify(quote)); //filter out deleted quote
+
+        localStorage.setItem(storageKey, JSON.stringify(updatedQuotes));
+    };
+
+    /**
+     * render table
+     */
+    function renderTable() {
+        renderPaginatedQuotes();
+        updateDataLists();
+    };
+
+    function updateDataLists() {
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
         const seriesSet = new Set();
-        const titleSet = new Set();
+        const titlesSet = new Set();
         const charactersSet = new Set();
         const authorsSet = new Set();
 
-        quotes.forEach((quote) => {
-            if (quote.bookSeries) seriesSet.add(quote.bookSeries);
-            if (quote.bookTitle) titleSet.add(quote.bookTitle);
-            if (quote.characters) charactersSet.add(quote.characters);
-            if (quote.author) authorsSet.add(quote.author);
+        quotes.forEach(quote => {
+            seriesSet.add(quote.bookSeries);
+            titlesSet.add(quote.bookTitle);
+            charactersSet.add(quote.characters);
+            authorsSet.add(quote.author);
         });
 
-        updateDatalist("series-list", seriesSet);
-        updateDatalist("title-list", titleSet); // Update book titles datalist
-        updateDatalist("characters-list", charactersSet);
-        updateDatalist("author-list", authorsSet);
-    }
+        updateDataList("series-list", seriesSet);
+        updateDataList("title-list", titlesSet);
+        updateDataList("characters-list", charactersSet);
+        updateDataList("author-list", authorsSet);
+    };
 
-    // Helper function to populate a datalist
-    function updateDatalist(datalistId, dataSet) {
+    function updateDataList(datalistId, dataSet) {
         const datalist = document.getElementById(datalistId);
-        datalist.innerHTML = ""; // Clear existing options
-        dataSet.forEach((value) => {
+        datalist.innerHTML = "";
+        dataSet.forEach(value => {
             const option = document.createElement("option");
             option.value = value;
             datalist.appendChild(option);
         });
     }
 
-    // Handle editing quotes
-    function handleEdit(row, quote) {
-        const editSection = document.getElementById("edit-quote-section");
-        const editForm = document.getElementById("edit-quote-form");
-        const deleteButton = document.getElementById("delete-quote");
-        const cancelButton = document.getElementById("cancel-edit");
-    
-        // Show the edit section and add transition
-        editSection.style.display = "block";
-        editSection.classList.add("show"); // Add the class to make it visible
-        editSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    const searchInput = document.getElementById("search");
+    const searchFieldSelector = document.getElementById("search-field");
 
-        // Populate fields
-        document.getElementById("editBookSeries").value = quote.bookSeries || "";
-        document.getElementById("editBookTitle").value = quote.bookTitle || "";
-        document.getElementById("editCharacters").value = quote.characters || "";
-        document.getElementById("editQuote").value = quote.quote || "";
-        document.getElementById("editAuthor").value = quote.author || "";
-    
-        // Save changes
-        editForm.onsubmit = (event) => {
-            event.preventDefault();
-            const updatedQuote = {
-                bookSeries: document.getElementById("editBookSeries").value.trim(),
-                bookTitle: document.getElementById("editBookTitle").value.trim(),
-                characters: document.getElementById("editCharacters").value.trim(),
-                quote: document.getElementById("editQuote").value.trim(),
-                author: document.getElementById("editAuthor").value.trim(),
-            };
-    
-            if (confirm("Are you sure you want to save changes?")) {
-                updateQuoteInStorage(quote, updatedQuote);
-                loadQuotes(); // Refresh the table 
-                editSection.classList.remove("show");
-                editSection.classList.add("hide");
-                setTimeout(() => {
-                    editSection.style.display = "none"; // Hide edit form
-                    editSection.classList.remove("hide");
-                }, 500);
-            }
-        };
-    
-        // Delete quote
-        deleteButton.onclick = () => {
-            if (confirm("Are you sure you want to delete this quote?")) {
-                deleteQuoteFromStorage(quote);
-                loadQuotes(); // Refresh the table
-                editSection.classList.remove("show");
-                editSection.classList.add("hide");
-                setTimeout(() => {
-                    editSection.style.display = "none"; // Hide edit form
-                    editSection.classList.remove("hide");
-                }, 500);
-            }
-        };
-    
-        // Cancel editing
-        cancelButton.onclick = () => {
-            editSection.classList.remove("show");
-            editSection.classList.add("hide");
-            setTimeout(() => {
-                editSection.style.display = "none"; // Hide edit form
-                editSection.classList.remove("hide");
-            }, 500);
-        };
-    }
-    
-    function updateQuoteInStorage(oldQuote, updatedQuote) {
+    searchInput.addEventListener("input", searchQuotes);
+    searchFieldSelector.addEventListener("change", searchQuotes);
+
+    function searchQuotes() {
+        const searchWord = searchInput.value.trim().toLowerCase();
+        const searchField = searchFieldSelector.value;
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
-        const index = quotes.findIndex((q) => JSON.stringify(q) === JSON.stringify(oldQuote));
     
-        if (index !== -1) {
-            quotes[index] = updatedQuote;
-            localStorage.setItem(storageKey, JSON.stringify(quotes));
+        let filteredQuotes;
+        if (searchField === "global") {
+            filteredQuotes = quotes.filter(quote =>
+                Object.values(quote).some(value => 
+                    value.toLowerCase().includes(searchWord) // Correctly returning true/false
+                )
+            );
+        } else {
+            filteredQuotes = quotes.filter(quote => 
+                quote[searchField].toLowerCase().includes(searchWord)
+            );
         }
-    }
     
-    function deleteQuoteFromStorage(quote) {
-        const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
-        const updatedQuotes = quotes.filter((q) => JSON.stringify(q) !== JSON.stringify(quote));
-    
-        localStorage.setItem(storageKey, JSON.stringify(updatedQuotes));
-    }
-    
-    document.getElementById("search").addEventListener("input", filterQuotes);
-    document.getElementById("search-field").addEventListener("change", filterQuotes);
+        // Clear the table and render the filtered quotes
+        quoteTableBody.innerHTML = "";
+        filteredQuotes.forEach(quote => addQuoteToTable(quote));
 
-    function filterQuotes() {
-        const searchInput = document.getElementById("search").value.trim().toLowerCase();
-        const searchField = document.getElementById("search-field").value;
-        const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
-    
-        const filteredQuotes = quotes.filter((quote) => {
-            if (searchField === "global") {
-                return Object.values(quote).some((value) =>
-                    value.toLowerCase().includes(searchInput)
-                );
-            } else {
-                return quote[searchField]?.toLowerCase().includes(searchInput);
-            }
-        });
-    
-        // Clear and re-render the table with filtered quotes
-        quotesTableBody.innerHTML = "";
-        filteredQuotes.forEach((quote) => appendQuoteToTable(quote));
-
-        // Show or hide "No Results Found" message
-        const noResultsMessage = document.getElementById("no-results");
-        noResultsMessage.style.display = filteredQuotes.length === 0 ? "block" : "none";
+        // Show or hide "No quotes found" message
+        const noResultMessage = document.getElementById("no-results");
+        noResultMessage.style.display = filteredQuotes.length === 0 ? "block" : "none";
     }
 
     document.querySelectorAll("#quotes-table th").forEach((header) => {
@@ -302,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     let currentSortField = null;
-    let currentSortOrder = "asc"; // Default to ascending
+    let currentSortOrder = "asc"; // Default sorting mode
 
     function sortQuotes(header) {
         const fieldMap = {
@@ -317,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!field) return;
 
         const quotes = JSON.parse(localStorage.getItem(storageKey)) || [];
-
+        
         // Determine sort order
         if (currentSortField === field) {
             currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
@@ -346,36 +366,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Save sorted quotes and re-render the table
         localStorage.setItem(storageKey, JSON.stringify(quotes));
-        loadQuotes();
+        renderTable();
     }
 });
 
-function setupCharacterLimitIndicators() {
-    // Select all input and textarea fields with a maxlength attribute
-    const inputsWithLimits = document.querySelectorAll("input[maxlength], textarea[maxlength]");
+//function to display character limits dynamically
+function characterLimitIndicator () {
+    //get all input fields with character limit
+    const inputsWithChLimit = document.querySelectorAll("input[maxlength], textarea[maxlength]");
 
-    inputsWithLimits.forEach((input) => {
-        const maxLength = parseInt(input.getAttribute("maxlength"), 10);
-
-        // Find the corresponding label for the input
+    inputsWithChLimit.forEach((input) => {
+        //get appropriate label
         const label = document.querySelector(`label[for="${input.id}"]`);
+        //get max character limit
+        const maxLength = parseInt(input.getAttribute("maxlength"));
+        let remaining = maxLength - input.value.length; 
         if (label) {
-            // Append a span to the label to show remaining characters
-            const remainingSpan = document.createElement("span");
-            remainingSpan.style.marginLeft = "10px";
-            remainingSpan.style.fontSize = "0.9em";
-            remainingSpan.style.color = "#666";
-            remainingSpan.textContent = `${maxLength} characters remaining`;
-            label.appendChild(remainingSpan);
+            //append a span dynamically as the user types
+            const remainingSpan = label.querySelector("span");
+            remainingSpan.textContent = `${remaining}/${maxLength}`;;
 
-            // Update the span dynamically as the user types
-            input.addEventListener("input", () => {
-                const remaining = maxLength - input.value.length;
-                remainingSpan.textContent = `${remaining}/${maxLength} characters remaining`;
+            //update the span dynamically
+            input.addEventListener("input", () =>{
+                remaining = maxLength - input.value.length;
+                remainingSpan.textContent = `${remaining}/${maxLength}`;
             });
         }
     });
 }
 
-// Call this function after the DOM content has loaded
-document.addEventListener("DOMContentLoaded", setupCharacterLimitIndicators);
+document.addEventListener("DOMContentLoaded", characterLimitIndicator);
