@@ -1,4 +1,4 @@
-# Quote-Base v1
+# Quote-Base v1.1
 
 **Quote-Base** is a beginner-friendly web application designed to manage your favorite book quotes. With features for adding, editing, searching, and deleting quotes, this app provides an easy-to-use interface for book lovers to keep track of their treasured lines. This project serves as an ongoing learning experience, continually evolving as I enhance my programming and web development skills.
 
