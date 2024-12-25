@@ -20,37 +20,49 @@ main {
 }
 
 /* Register/Login Section Styling */
-#register-login-section {
-    width: 100%;
-    /*max-width: 500px;*/
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 1.5em;
+#register-login-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    gap: 2em;
     margin: 2em auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 1200px;
     /*text-align: center;*/ 
 }
 
-#register-login-section h2 {
+/* Section styling */
+#register-section, #login-section {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1.5em;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Section headers */
+#register-section h2, #login-section h2 {
     font-size: 1.5em;
     margin-bottom: 0.5em;
     color: #3A7CA5;
     text-align: center;
 }
 
-#register-login-section form {
+/* Form styling */
+#register-section form, #login-section form {
     display: flex;
     flex-direction: column;
     gap: 0.8em;
 }
 
-#register-login-section label {
+#register-section label, #login-section label {
     font-weight: bold;
     margin-bottom: 0.3em;
     color: #4A4A4A;
 }
 
-#register-login-section input {
+#form-section input, #login-section input {
     padding: 0.6em;
     border: 1px solid #C3C3C3;
     border-radius: 5px;
@@ -59,31 +71,19 @@ main {
     box-sizing: border-box;
 }
 
-#register-login-section hr {
-    margin: 1.5em 0;
-    border: 0;
-    border-top: 1px solid #ddd;
-}
-
-#register-login-section .forgot-password {
+/* Forgot password section */
+.forgot-password {
+    text-align: center;
     margin-top: 1em;
     color: #3A7CA5;
     text-decoration: none;
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
-#register-login-section .forgot-password:hover {
+.forgot-password:hover {
     text-decoration: underline;
     color: #2B5F7D;
 }
-
-/* Logo styling 
-.logo-container {
-    width: 100px;
-    height: auto;
-    margin: 0 auto 1em;
-    display: block;
-} */
 
 /* Header Styling */
 header {
@@ -137,6 +137,7 @@ form input, form textarea {
 
 .common-button {
     background-color: #3A7CA5;
+    font-size: 1em;
     color: #FFF;
     border: none;
     padding: 0.7em 1.2em;
@@ -147,6 +148,12 @@ form input, form textarea {
 
 .common-button:hover {
     background-color: #2B5F7D;
+}
+
+.common-button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .character-limit {
@@ -309,6 +316,16 @@ footer a:hover {
 
 /* Media Query: Tablet and smaller screens (max-width: 770px) */
 @media (max-width: 770px) {
+    #register-login-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #register-section, #login-section {
+        width: 100%;
+        max-width: 500px;
+    }
+
     #quotes-table, 
     footer {
         width: 100%; /* Take full width */

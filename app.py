@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 
@@ -14,11 +14,13 @@ app.config["SECRET-KEY"] = os.getenv("SECRET_KEY")
 mongo = PyMongo(app)
 CORS(app)
 
-print("MONGO_URI:", app.config["MONGO_URI"])
-
 @app.route("/")
 def home():
-    return {"message": "Welcome to Quote-Base API!"}
+    return render_template("index.html")
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
 
 @app.route("/test-db")
 def testDb():
