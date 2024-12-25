@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quote-base Login/Register Page">
+    <title>Quote-Base | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Quote-Base</h1>
+        <p>Manage your favorite book quotes with ease. Add, search, and edit quotes!</p>
+    </header>
+
+    <main>
+        <section id="register-login-section">
+
+            <!-- Register Form -->
+            <h2>Register</h2>
+            <form id="register-form">
+                <!-- Logo Section 
+                <div class="logo-container">
+                    <img src="../static/images/1by1_Quote-Base1.jpg" alt="Quote-Base Logo" width="100px">
+                </div>-->
+                
+                <section>
+                    <label for="register-email">Email:</label>
+                    <input type="email" id="register-email" name="register-email" placeholder="Enter your email" required>
+                </section>
+                
+                <section>
+                    <label for="register-password">Password:</label>
+                    <input type="password" id="register-password" name="register-password" placeholder="Enter your password" required>
+                </section>
+
+                <section>
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                </section>
+
+                <section>
+                    <button type="submit" class="common-button">Register</button>
+                </section>
+            </form>
+
+            <hr>
+
+            <!-- Login Form -->
+            <h2>Login</h2>
+            <form id="login-form">
+                
+                <section>
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" name="login-email" placeholder="Enter your email" required>
+                </section>
+                
+                <section>
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="login-password" placeholder="Enter your password" required>
+                </section>
+
+                <section>
+                    <button type="submit" class="common-button">Login</button>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </section>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <!-- Same footer content -->
+        <div id="contact-links">
+            <a href="https://github.com/omerfatihko" target="_blank"><img src="../static/images/github.png" alt="GitHub"></a>
+            <a href="https://www.linkedin.com/in/omerfatihkonar/" target="_blank"><img src="../static/images/linkedin.png" alt="LinkedIn"></a>
+            <a href="mailto:omerfatihk@gmail.com"><img src="../static/images/gmail.png" alt="Gmail"></a>
+        </div>
+        <p>Quote-Base &copy; 2024. Made by Ömer Fatih Konar</p>
+        <p>Licensed under the <a href="../static/license/LICENSE.txt" target="_blank">MIT License</a>.</p>
+        <p>Background photo by <a href="https://unsplash.com/@pawel_czerwinski?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" target="_blank">Pawel Czerwinski</a> on <a href="https://unsplash.com/photos/a-close-up-of-a-pattern-of-wavy-shapes-_x16XKBPBwE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" target="_blank">Unsplash</a></p>
+    </footer>
+</body>
+</html>
