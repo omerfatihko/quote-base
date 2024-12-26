@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 
@@ -14,13 +14,30 @@ app.config["SECRET-KEY"] = os.getenv("SECRET_KEY")
 mongo = PyMongo(app)
 CORS(app)
 
-@app.route("/")
+@app.route("/home")
 def home():
     return render_template("index.html")
 
-@app.route("/register")
-def register():
+@app.route("/")
+def registerPage():
     return render_template("register.html")
+
+@app.route("/register", methods=["POST"])
+def register():
+    try:
+        # Parse incoming JSON data
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        # Log the received data (for testing purposes)
+        print(f"Received registration data: Email: {email}, Password: {password}")
+        
+        # Send a success response
+        return jsonify({"message": "Registration successful!"}), 200
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": "Something went wrong"}), 500
 
 @app.route("/test-db")
 def testDb():

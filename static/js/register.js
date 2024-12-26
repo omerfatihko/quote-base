@@ -66,4 +66,50 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initially disable buttons
     registerButton.disabled = true;
     loginButton.disabled = true;
+
+    // Event listener for registration action
+    registerForm.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        // Collect form data
+        const email = emailField.value.trim();
+        const password = passwordField.value.trim();
+        const confirmPassword = confirmPasswordField.value.trim();
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        // Create a payload object
+        const payload = {email, password};
+
+        try {
+            // Send a POST request to the Flask backend
+            const response = await fetch("/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            // Handle the response
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Response from server:", data);
+                alert("Registration successful!");
+
+                // Redirect or render the main page
+                window.location.href = "/home";
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error("An error occurred:", error);
+            alert("An unexpected error occurred. Please try again.");
+        }
+    });
 });
