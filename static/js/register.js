@@ -11,6 +11,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginEmailField = document.getElementById("login-email");
     const loginPasswordField = document.getElementById("login-password");
 
+    const togglePasswordVisibility = (inputId, toggleId) => {
+        const passwordField = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(toggleId);
+
+        toggleIcon.addEventListener("click", () => {
+            const isPasswordVisible = passwordField.type === "text";
+            passwordField.type = isPasswordVisible ? "password" : "text";
+            toggleIcon.src = isPasswordVisible
+                ? "../static/images/eye-closed.png"
+                : "../static/images/eye-open.png";
+            toggleIcon.alt = isPasswordVisible ? "Show password" : "Hide password";
+        });
+    };
+
+    // add toggle functionality to each password field
+    togglePasswordVisibility("register-password", "toggle-register-password");
+    togglePasswordVisibility("confirm-password", "toggle-confirm-password");
+    togglePasswordVisibility("login-password", "toggle-login-password");
+
     function validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
