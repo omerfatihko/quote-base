@@ -65,7 +65,8 @@ def register():
             "password": hashedPassword.decode("utf-8"), # store as a string
             "quotesRemaining": 100, #default quote limit, 100
             "createdAt": datetime.now(timezone.utc),
-            "updatedAt": datetime.now(timezone.utc)
+            "updatedAt": datetime.now(timezone.utc),
+            "lastLogin": datetime.now(timezone.utc)
         }
         
         # Insert new user into the database
@@ -80,6 +81,49 @@ def register():
         # Redirect to the home page
         return jsonify({"message": "Registration successful!"}), 200
         
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": "Something went wrong"}), 500
+
+@app.route("/login", methods=["POST"])
+def login():
+    try:
+        # Parse incoming JSON data
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+        # Connect to MongoDB collections 
+        db = mongo.cx["quote-base"]
+        userCollection = db["users"]
+        
+        # Find the user in the database by email
+        existingUser = userCollection.find_one({"email": email})
+        if not existingUser:
+            return jsonify({"error": "Invalid email or password"}), 400
+        
+        # Verify the password
+        if not bcrypt.checkpw(password.encode("utf-8"), existingUser["password"].encode("utf-8")):
+            return jsonify({"error": "Invalid email or password"}), 400
+        
+        # Update last login time
+        userCollection.update_one(
+            {"email": email},
+            {"$set": {"lastLogin": datetime.now(timezone.utc)}}
+        )
+        
+        # Set session data
+        session["user"] = email
+        
+        # Log success for debugging
+        print(f"User logged in: {email}")
+        
+        # Redirect to the home page
+        return jsonify({"message": "Login successful!"}), 200
+    
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return jsonify({"error": "Something went wrong"}), 500

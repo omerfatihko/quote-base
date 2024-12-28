@@ -99,7 +99,46 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log("Response from server:", data);
-                alert("Registration successful!");
+                alert(data.message); // alert("Registration successful!");
+
+                // Redirect or render the main page
+                window.location.href = "/home";
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error("An error occurred:", error);
+            alert("An unexpected error occurred. Please try again.");
+        }
+    });
+
+    // Event listener for login action
+    loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        // Collect form data
+        const email = loginEmailField.value.trim();
+        const password = loginPasswordField.value.trim();
+
+        // Create a payload object
+        const payload = {email, password};
+
+        try {
+            // Send a POST request to the Flask backend
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            // Handle the response
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Response from server:", data);
+                alert(data.message);
 
                 // Redirect or render the main page
                 window.location.href = "/home";
