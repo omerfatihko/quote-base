@@ -84,7 +84,7 @@ def register():
         print(f"Error occurred: {str(e)}")
         return jsonify({"error": "Something went wrong"}), 500
 
-@app.route("/logout")
+@app.route("/logout", methods= ["GET"])
 def logout():
     session.pop("user", None) # Remove user session
     return redirect("/") # Redirect to the register page
