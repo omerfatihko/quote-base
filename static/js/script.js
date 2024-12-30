@@ -7,6 +7,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const embeddedQuotesData = document.getElementById("quotes-data");
     let quotes = embeddedQuotesData ? JSON.parse(embeddedQuotesData.textContent) : [];
 
+    // Pagination controllers
+    const previousPageButton = document.getElementById("previous-page");
+    const nextPageButton = document.getElementById("next-page");
+    const itemsPerPageSelect = document.getElementById("items-per-page");
+
+    // Pagination informers
+    const pageInfo = document.getElementById("page-info");
+    const noResultInfo = document.getElementById("no-results");
+
+    // Pagination trackers
+    let currentPage = 1;
+    let itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
+
+    // Logout button
+    const logoutButton = document.getElementById("logout");
+
     // Render the table on page load
     renderQuotesTable();
 
@@ -26,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 quotes = data.quotes;
                 // Re-render the table
                 renderQuotesTable();
+                console.log("quote added to the db");
             } else if (response.status === 401) {
                 alert(data.error || "Session expired. Please log in again.");
                 window.location.href = "/"; // Redirect to the login page
@@ -39,13 +56,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderQuotesTable() {
+        const startIndex = (currentPage - 1)*itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedQuotes = quotes.slice(startIndex, endIndex);
+
         // Clear the table
         quotesTableBody.innerHTML = "";
 
-        // Populate with updated quotes
-        quotes.forEach((quote) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
+        // If there is no quote, display no results message
+        if (paginatedQuotes.length === 0) {
+            noResultInfo.style.display = "block";
+            return;
+        }
+        noResultInfo.style.display = "none";
+
+        // Render the table
+        paginatedQuotes.forEach((quote) => addRowToTable(quote));
+
+        //Update page info
+        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+        pageInfo.textContent = `${currentPage}/${totalPages}`;
+
+        //Enable or disable pagination buttons
+        previousPageButton.disabled = currentPage === 1;
+        nextPageButton.disabled = currentPage === totalPages;
+
+        characterLimitIndicator(); // Reset character limits
+    }
+
+    // Event listener for items-per-page dropdown
+    itemsPerPageSelect.addEventListener("change", () => {
+        itemsPerPage = parseInt(itemsPerPageSelect.value);
+        currentPage = 1; // Reset to the first page
+        renderQuotesTable();
+    });
+
+    // Event listener for previous page button
+    previousPageButton.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderQuotesTable();
+        }
+    });
+
+    // Event listener for next page button
+    nextPageButton.addEventListener("click", () => {
+        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderQuotesTable();
+        }
+    });
+
+    function addRowToTable(quote) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${quote.bookSeries || ""}</td>
                 <td>${quote.bookTitle}</td>
                 <td>${quote.characters || ""}</td>
@@ -56,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 </td>
             `;
             quotesTableBody.appendChild(row);
-        });
     }
 
     addQuoteForm.addEventListener("submit", (event) => {
@@ -85,8 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reset the form
         addQuoteForm.reset();
     });
-
-    const logoutButton = document.getElementById("logout");
 
     //Event listener for logout button
     if (logoutButton) {
