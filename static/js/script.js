@@ -61,6 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderQuotesTable(quotes) {
+        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+        // After search current page needs to be updated (to prevent out of bound pages)
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
         const startIndex = (currentPage - 1)*itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         const paginatedQuotes = quotes.slice(startIndex, endIndex);
@@ -79,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
         paginatedQuotes.forEach((quote) => addRowToTable(quote));
 
         //Update page info
-        const totalPages = Math.ceil(quotes.length / itemsPerPage);
         pageInfo.textContent = `${currentPage}/${totalPages}`;
 
         //Enable or disable pagination buttons
