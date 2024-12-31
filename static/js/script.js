@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Quote form and table body
     const addQuoteForm = document.getElementById("add-quote-form");
     const quotesTableBody = document.querySelector("#quotes-table tbody");
 
@@ -6,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Get the quotes passed from the Flask backend
     const embeddedQuotesData = document.getElementById("quotes-data");
     let quotes = embeddedQuotesData ? JSON.parse(embeddedQuotesData.textContent) : [];
+
+    // Search controllers
+    const searchInput = document.getElementById("search");
+    const searchFieldSelector = document.getElementById("search-field");
 
     // Pagination controllers
     const previousPageButton = document.getElementById("previous-page");
@@ -24,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logout");
 
     // Render the table on page load
-    renderQuotesTable();
+    renderQuotesTable(quotes);
 
     async function addQuoteToTable(quote) {
         try {
@@ -41,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update the client-side memory
                 quotes = data.quotes;
                 // Re-render the table
-                renderQuotesTable();
+                renderQuotesTable(quotes);
                 console.log("quote added to the db");
             } else if (response.status === 401) {
                 alert(data.error || "Session expired. Please log in again.");
@@ -55,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderQuotesTable() {
+    function renderQuotesTable(quotes) {
         const startIndex = (currentPage - 1)*itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         const paginatedQuotes = quotes.slice(startIndex, endIndex);
@@ -88,14 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
     itemsPerPageSelect.addEventListener("change", () => {
         itemsPerPage = parseInt(itemsPerPageSelect.value);
         currentPage = 1; // Reset to the first page
-        renderQuotesTable();
+        renderQuotesTable(quotes);
     });
 
     // Event listener for previous page button
     previousPageButton.addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage--;
-            renderQuotesTable();
+            renderQuotesTable(quotes);
         }
     });
 
@@ -104,10 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalPages = Math.ceil(quotes.length / itemsPerPage);
         if (currentPage < totalPages) {
             currentPage++;
-            renderQuotesTable();
+            renderQuotesTable(quotes);
         }
     });
 
+    // 
     function addRowToTable(quote) {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -149,6 +155,38 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reset the form
         addQuoteForm.reset();
     });
+
+    // Search functionality
+    searchInput.addEventListener("input", searchQuotes);
+    searchFieldSelector.addEventListener("change", searchQuotes);
+
+    function searchQuotes() {
+        const searchWord = searchInput.value.trim().toLowerCase();
+        const searchField = searchFieldSelector.value;
+    
+        let filteredQuotes;
+        if (searchField === "global") {
+            filteredQuotes = quotes.filter(quote =>
+                Object.entries(quote).filter(
+                    ([key, value]) => !["_id", "createdAt", "updatedAt"].includes(key) // Exclude these fields from search
+                ).some(
+                    ([_, value]) => value && value.toString().toLowerCase().includes(searchWord) // Check value for search term
+                )
+            );
+        } else {
+            filteredQuotes = quotes.filter(
+                quote => quote[searchField] && quote[searchField].toLowerCase().includes(searchWord)
+            );
+        }
+    
+        // Clear the table and render the filtered quotes
+        quotesTableBody.innerHTML = "";
+        renderQuotesTable(filteredQuotes);
+
+        // Show or hide "No quotes found" message This is handled at renderQuotesTable side
+        // const noResultMessage = document.getElementById("no-results");
+        // noResultMessage.style.display = filteredQuotes.length === 0 ? "block" : "none";
+    }
 
     //Event listener for logout button
     if (logoutButton) {
