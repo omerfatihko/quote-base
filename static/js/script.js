@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Get the quotes passed from the Flask backend
     const embeddedQuotesData = document.getElementById("quotes-data");
     let quotes = embeddedQuotesData ? JSON.parse(embeddedQuotesData.textContent) : [];
+    let filteredQuotes = [...quotes]; // Default to all quotes
 
     // Search controllers
     const searchInput = document.getElementById("search");
@@ -24,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Pagination trackers
     let currentPage = 1;
     let itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
+
+    // Sorting trackers
+    let currentSortField = null;
+    let currentSortOrder = "asc"; // Default sorting mode is ascending
 
     // Logout button
     const logoutButton = document.getElementById("logout");
@@ -60,15 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderQuotesTable(quotes) {
-        const totalPages = Math.ceil(quotes.length / itemsPerPage);
+    function renderQuotesTable(quotesToRender = filteredQuotes) {
+        const totalPages = Math.ceil(quotesToRender.length / itemsPerPage);
         // After search current page needs to be updated (to prevent out of bound pages)
         if (currentPage > totalPages) {
             currentPage = totalPages;
         }
         const startIndex = (currentPage - 1)*itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedQuotes = quotes.slice(startIndex, endIndex);
+        const paginatedQuotes = quotesToRender.slice(startIndex, endIndex);
 
         // Clear the table
         quotesTableBody.innerHTML = "";
@@ -97,14 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
     itemsPerPageSelect.addEventListener("change", () => {
         itemsPerPage = parseInt(itemsPerPageSelect.value);
         currentPage = 1; // Reset to the first page
-        renderQuotesTable(quotes);
+        renderQuotesTable(filteredQuotes);
     });
 
     // Event listener for previous page button
     previousPageButton.addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage--;
-            renderQuotesTable(quotes);
+            renderQuotesTable(filteredQuotes);
         }
     });
 
@@ -113,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalPages = Math.ceil(quotes.length / itemsPerPage);
         if (currentPage < totalPages) {
             currentPage++;
-            renderQuotesTable(quotes);
+            renderQuotesTable(filteredQuotes);
         }
     });
 
@@ -168,11 +173,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const searchWord = searchInput.value.trim().toLowerCase();
         const searchField = searchFieldSelector.value;
     
-        let filteredQuotes;
         if (searchField === "global") {
             filteredQuotes = quotes.filter(quote =>
                 Object.entries(quote).filter(
-                    ([key, value]) => !["_id", "createdAt", "updatedAt"].includes(key) // Exclude these fields from search
+                    ([key]) => !["_id", "createdAt", "updatedAt"].includes(key) // Exclude these fields from search
                 ).some(
                     ([_, value]) => value && value.toString().toLowerCase().includes(searchWord) // Check value for search term
                 )
@@ -183,13 +187,55 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
     
-        // Clear the table and render the filtered quotes
-        quotesTableBody.innerHTML = "";
+        // Render the filtered quotes
         renderQuotesTable(filteredQuotes);
+    }
 
-        // Show or hide "No quotes found" message This is handled at renderQuotesTable side
-        // const noResultMessage = document.getElementById("no-results");
-        // noResultMessage.style.display = filteredQuotes.length === 0 ? "block" : "none";
+    // Sorting functionality
+    document.querySelectorAll("#quotes-table th").forEach((header) => {
+        header.addEventListener("click", () => sortQuotes(header));
+    });
+
+    function sortQuotes(header) {
+        const fieldMap = {
+            0: "bookSeries",
+            1: "bookTitle",
+            2: "characters",
+            3: "quote",
+            4: "author",
+        };
+
+        const field = fieldMap[header.cellIndex];
+        if (!field) return;
+
+        // Determine sort order
+        if (currentSortField === field) {
+            currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
+        } else {
+            currentSortField = field;
+            currentSortOrder = "asc";
+        }
+
+        // Sort quotes
+        filteredQuotes.sort((a, b) => {
+            const aValue = a[field]?.toLowerCase() || "";
+            const bValue = b[field]?.toLowerCase() || "";
+
+            if (aValue < bValue) return currentSortOrder === "asc" ? -1 : 1;
+            if (aValue > bValue) return currentSortOrder === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        // Clear existing classes
+        document.querySelectorAll("#quotes-table th").forEach((th) => {
+            th.classList.remove("sorted-asc", "sorted-desc");
+        });
+
+        // Add sorted class to the current header
+        header.classList.add(currentSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
+
+        // Render the sorted table
+        renderQuotesTable(filteredQuotes);
     }
 
     //Event listener for logout button
