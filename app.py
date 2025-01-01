@@ -81,7 +81,8 @@ def register():
         user = {
             "email": email,
             "password": hashedPassword.decode("utf-8"), # store as a string
-            "quotesRemaining": 100, #default quote limit, 100
+            "quotesRemaining": 100, # default quote limit, 100
+            "totalQuotes": 100, # default quote limit, 100
             "createdAt": datetime.now(timezone.utc),
             "updatedAt": datetime.now(timezone.utc),
             "lastLogin": datetime.now(timezone.utc)
@@ -145,6 +146,34 @@ def login():
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return jsonify({"error": "Something went wrong"}), 500
+
+@app.route("/get-quote-limit", methods=["GET"])
+def getQuoteLimit():
+    try:
+        # Ensure the user is logged in
+        if "user" not in session:
+            return jsonify({"error": "Unauthorized access. Please log in."}), 401
+        
+        # Connect to MongoDB
+        db = mongo.cx["quote-base"]
+        userCollection = db["users"]
+        userEmail = session["user"]
+        
+        # Fetch user details
+        user = userCollection.find_one(
+            {"email": userEmail},
+            {"_id": 0, "quotesRemaining": 1, "totalQuotes": 1}
+        )
+        if not user:
+            session.pop("user", None) # User not found in DB; end the session and log them out
+            return jsonify({"error": "User not found. Please log in again."}), 401
+        
+        # Return the user's quote limit
+        return jsonify({"remainingQuotes": user["quotesRemaining"], "totalQuotes": user["totalQuotes"]}), 200
+    
+    except Exception as e:
+        print(f"Error fetching quote limits: {str(e)}")
+        return jsonify({"error": "An error occurred. Please try again."}), 500
 
 @app.route("/add-quote", methods=["POST"])
 def addQuote():

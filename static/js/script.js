@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const addQuoteForm = document.getElementById("add-quote-form");
     const quotesTableBody = document.querySelector("#quotes-table tbody");
 
+    // Navbar buttons requiring informational pop-ups
+    const popUpButtons = document.querySelectorAll("[data-info]");
+
     // Edit section and elements
     const editQuoteSection = document.getElementById("edit-quote-section");
     const editQuoteForm = document.getElementById("edit-quote-form");
@@ -47,6 +50,40 @@ document.addEventListener("DOMContentLoaded", () => {
     // Render the table on page load
     renderQuotesTable(quotes);
 
+    // Informational pop-up functionality
+    popUpButtons.forEach((button) => {
+        button.addEventListener("click", async (event) => {
+            const message = button.dataset.info;
+
+            if (button.id === "upgrade-account") {
+                try {
+                    const response = await fetch("/get-quote-limit", {method: "GET"});
+                    if (response.ok) {
+                        const data = await response.json();
+                        const remainingQuotes = data.remainingQuotes;
+                        const totalQuotes = data.totalQuotes;
+                        alert(
+                            `Upgrade Account: Feature coming soon!\n` +
+                            `You currently have ${remainingQuotes}/${totalQuotes} quotes left.`
+                        );
+                    } else if (response.status === 401) {
+                        alert(data.error || "Session expired. Please log in again.");
+                        window.location.href = "/"; // Redirect to the login page
+                    } else {
+                        alert("Unable to fetch quote details. Please try again later.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching quote details: ", error);
+                    alert("An unexpected error occurred. Please try again.");
+                }
+            } else {
+                // Show the general pop-up message
+                alert(message);
+            }
+        });
+    });
+
+    // Add quote section functionality
     async function addQuoteToTable(quote) {
         try {
             const response = await fetch("/add-quote", {
@@ -237,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
         nextPageButton.disabled = currentPage === totalPages;
 
         characterLimitIndicator(); // Reset character limits
+        updateDataLists(); // Update data lists (suggestions)
     }
 
     // Event listener for items-per-page dropdown
@@ -377,6 +415,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render the sorted table
         renderQuotesTable(filteredQuotes);
+    }
+
+    // Data list functions (suggestions)
+    function updateDataLists() {
+        const seriesSet = new Set();
+        const titlesSet = new Set();
+        const charactersSet = new Set();
+        const authorsSet = new Set();
+
+        quotes.forEach(quote => {
+            seriesSet.add(quote.bookSeries);
+            titlesSet.add(quote.bookTitle);
+            charactersSet.add(quote.characters);
+            authorsSet.add(quote.author);
+        });
+
+        updateDataList("series-list", seriesSet);
+        updateDataList("title-list", titlesSet);
+        updateDataList("characters-list", charactersSet);
+        updateDataList("author-list", authorsSet);
+    }
+
+    function updateDataList(datalistId, dataSet) {
+        const datalist = document.getElementById(datalistId);
+        datalist.innerHTML = "";
+        dataSet.forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            datalist.appendChild(option);
+        });
     }
 
     //Event listener for logout button

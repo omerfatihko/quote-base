@@ -1,16 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Register-login forms
     const registerForm = document.getElementById("register-form");
     const loginForm = document.getElementById("login-form");
 
+    // Register-login buttons
     const registerButton = registerForm.querySelector("button");
     const loginButton = loginForm.querySelector("button");
 
+    // Entry fields
     const emailField = document.getElementById("register-email");
     const passwordField = document.getElementById("register-password");
     const confirmPasswordField = document.getElementById("confirm-password");
     const loginEmailField = document.getElementById("login-email");
     const loginPasswordField = document.getElementById("login-password");
 
+    // add toggle functionality to each password field
     const togglePasswordVisibility = (inputId, toggleId) => {
         const passwordField = document.getElementById(inputId);
         const toggleIcon = document.getElementById(toggleId);
@@ -25,11 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // add toggle functionality to each password field
     togglePasswordVisibility("register-password", "toggle-register-password");
     togglePasswordVisibility("confirm-password", "toggle-confirm-password");
     togglePasswordVisibility("login-password", "toggle-login-password");
 
+    // Validation functionality
     function validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -39,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return password.length >= 8 && !/\s/.test(password);
     }
 
+    // Disable functionality
     function enableOrDisableRegisterButton() {
         const isValidEmail = validateEmail(emailField.value.trim());
         const isValidPassword = validatePassword(passwordField.value);
@@ -150,5 +155,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("An error occurred:", error);
             alert("An unexpected error occurred. Please try again.");
         }
+    });
+
+    // Forgot password button requires coming soon info
+    const forgotPasswordButton = document.getElementById("forgot-password");
+
+    forgotPasswordButton.addEventListener("click", () => {
+        alert("Feature coming soon!");
     });
 });
