@@ -64,7 +64,7 @@
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/quote-base.git
+   git clone https://github.com/omerfatihko/quote-base.git
 
    ```
 
