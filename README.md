@@ -81,13 +81,7 @@
 
 ## Future updates
 
-This project is a work in progress and will be updated as I learn new concepts and techniques. Planned updates include:
-
-- Enhanced styling and animations.
-- Integration with a backend database for persistent storage.
-- User authentication for personalized experiences.
-- Export/import functionality for quotes.
-- Support for additional languages
+This branch will not be updated. Please check quote-base-v2.0 branch
 
 ---
 
