@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session, redirect
 from flask_pymongo import PyMongo
 from flask_cors import CORS
+from bson import ObjectId
 
 import bcrypt
 from datetime import datetime, timedelta, timezone 
@@ -203,16 +204,71 @@ def addQuote():
         # Update user's quotesRemaining
         userCollection.update_one(
             {"email": userEmail},
-            {"$inc": {"quotesRemaining": -1}, "$set": {"updatedAt": datetime.now(timezone.utc)}}
+            {
+                "$inc": {"quotesRemaining": -1}, 
+                "$set": {"updatedAt": datetime.now(timezone.utc)}
+            }
         )
         
         # Fetch all quotes for the user and return them
-        userQuotes = list(quotesCollection.find({"userEmail": userEmail}, {"userEmail": 0}))
+        userQuotes = list(
+            quotesCollection.find(
+                {"userEmail": userEmail}, 
+                {"userEmail": 0}
+            )
+        )
         for quoteBlock in userQuotes:
             quoteBlock["_id"] = str(quoteBlock["_id"]) # Convert ObjectId to string for JSON serialization
             
         return jsonify({"message": "Quote added successfully!", "quotes": userQuotes}), 200
     
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": "Something went wrong"}), 500
+
+@app.route("/edit-quote/<quoteId>", methods=["PUT"])
+def editQuote(quoteId):
+    try:
+        # Ensure the user is logged in
+        if "user" not in session:
+            return jsonify({"error": "Unauthorized access. Please log in."}), 401
+        
+        # Parse incoming JSON data
+        data = request.get_json()
+        updatedFields = {
+            "bookSeries": data.get("bookSeries") if data.get("bookSeries") else data.get("bookTitle"),
+            "bookTitle": data.get("bookTitle"),
+            "characters": data.get("characters") if data.get("characters") else data.get("author"),
+            "quote": data.get("quote"),
+            "author": data.get("author"),
+            "updatedAt": datetime.now(timezone.utc),
+        }
+        
+        # Connect to MongoDB
+        db = mongo.cx["quote-base"]
+        quotesCollection = db["quotes"]
+        userEmail = session["user"]
+        
+        # Update the quote
+        result = quotesCollection.update_one(
+            {"_id": ObjectId(quoteId), "userEmail": userEmail},
+            {"$set": updatedFields}
+        )
+        if result.matched_count == 0:
+            return jsonify({"error": "Quote not found or unauthorized"}), 404
+        
+        # Fetch updated quotes and return them
+        userQuotes = list(
+            quotesCollection.find(
+                {"userEmail": userEmail},
+                {"userEmail": 0}
+            )
+        )
+        for quoteBlock in userQuotes:
+            quoteBlock["_id"] = str(quoteBlock["_id"]) # Convert ObjectId to string for JSON serialization
+        
+        return jsonify({"message": "Quote updated successfully!", "quotes": userQuotes}), 200
+        
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return jsonify({"error": "Something went wrong"}), 500

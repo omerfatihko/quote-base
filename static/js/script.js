@@ -3,6 +3,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const addQuoteForm = document.getElementById("add-quote-form");
     const quotesTableBody = document.querySelector("#quotes-table tbody");
 
+    // Edit section and elements
+    const editQuoteSection = document.getElementById("edit-quote-section");
+    const editQuoteForm = document.getElementById("edit-quote-form");
+    const editBookSeriesInput = document.getElementById("edit-book-series");
+    const editBookTitleInput = document.getElementById("edit-book-title");
+    const editCharactersInput = document.getElementById("edit-characters");
+    const editQuoteInput = document.getElementById("edit-quote");
+    const editAuthorInput = document.getElementById("edit-author");
+
+
     // Client-side memory for quotes
     // Get the quotes passed from the Flask backend
     const embeddedQuotesData = document.getElementById("quotes-data");
@@ -49,7 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (response.ok) {
                 // Update the client-side memory
-                quotes = data.quotes;
+                const fetchedQuotes = data.quotes;
+                quotes = fetchedQuotes;
+                // console.log(quotes);
                 // Re-render the table
                 renderQuotesTable(quotes);
                 console.log("quote added to the db");
@@ -64,6 +76,82 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("An unexpected error occurred. Please try again.");
         }
     }
+
+    // Edit section functionality
+    quotesTableBody.addEventListener("click", (event) => {
+        if (event.target.classList.contains("edit-button")) {
+            const quoteId = event.target.dataset.id; // BUNU SOR
+            const quote = quotes.find((q) => q._id === quoteId);
+            if (quote) {
+                populateEditForm(quote);
+                editQuoteSection.style.display = "block";
+                editQuoteSection.classList.add("show");
+                editQuoteSection.scrollIntoView({behavior: "smooth", block: "start"});
+            }
+        }
+    });
+
+    // Populate the edit form
+    function populateEditForm(quote) {
+        editBookSeriesInput.value = quote.bookSeries || "";
+        editBookTitleInput.value = quote.bookTitle;
+        editCharactersInput.value = quote.characters || "";
+        editQuoteInput.value = quote.quote;
+        editAuthorInput.value = quote.author;
+        editQuoteForm.dataset.id = quote._id; // We pass the id of the quote in the dataset of the form
+        characterLimitIndicator(); // to reset character limits
+    }
+
+    // Save changes
+    editQuoteForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const quoteId = editQuoteForm.dataset.id; // We pass the id of the quote in the dataset of the form
+        const updatedQuote = {
+            bookSeries: editBookSeriesInput.value.trim() || editBookTitleInput.value.trim(),
+            bookTitle: editBookTitleInput.value.trim(),
+            characters: editCharactersInput.value.trim() || editAuthorInput.value.trim(),
+            quote: editQuoteInput.value.trim(),
+            author: editAuthorInput.value.trim(),
+        };
+
+        //check for required fields (empty, only spaces etc)
+        if (!updatedQuote["bookTitle"] || !updatedQuote["quote"] || !updatedQuote["author"]) {
+            alert("Please fill in all required fields (Book title, quote, and author).");
+            return
+        }
+        if (confirm("Are you sure you want to save changes?")) {
+            try {
+                const response = await fetch(`/edit-quote/${quoteId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(updatedQuote),
+                });
+    
+                const data = await response.json();
+                if (response.ok) {
+                    // Update the client-side memory
+                    const fetchedQuotes = data.quotes;
+                    quotes = fetchedQuotes;
+                    // Re-render the table
+                    renderQuotesTable(quotes);
+                    alert("Quote updated successfully!");
+                    editQuoteSection.classList.remove("show");
+                    editQuoteSection.classList.add("hide");
+                    setTimeout(() => {
+                        editQuoteSection.style.display = "none"; //hide edit section
+                        editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                    }, 500);
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error("Error updating quote:", error);
+            }
+        }
+        
+    });
 
     function renderQuotesTable(quotesToRender = filteredQuotes) {
         const totalPages = Math.ceil(quotesToRender.length / itemsPerPage);
