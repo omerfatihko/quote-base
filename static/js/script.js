@@ -11,7 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const editCharactersInput = document.getElementById("edit-characters");
     const editQuoteInput = document.getElementById("edit-quote");
     const editAuthorInput = document.getElementById("edit-author");
-
+    const deleteButton = document.getElementById("delete-quote");
+    const cancelButton = document.getElementById("cancel-edit");
 
     // Client-side memory for quotes
     // Get the quotes passed from the Flask backend
@@ -61,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update the client-side memory
                 const fetchedQuotes = data.quotes;
                 quotes = fetchedQuotes;
-                // console.log(quotes);
                 // Re-render the table
                 renderQuotesTable(quotes);
                 console.log("quote added to the db");
@@ -136,21 +136,71 @@ document.addEventListener("DOMContentLoaded", () => {
                     quotes = fetchedQuotes;
                     // Re-render the table
                     renderQuotesTable(quotes);
-                    alert("Quote updated successfully!");
+                    alert("Quote updated successfully!"); // TODO Turn this to console.log
                     editQuoteSection.classList.remove("show");
                     editQuoteSection.classList.add("hide");
                     setTimeout(() => {
                         editQuoteSection.style.display = "none"; //hide edit section
                         editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
                     }, 500);
+                } else if (response.status === 401) {
+                    alert(data.error || "Session expired. Please log in again.");
+                    window.location.href = "/"; // Redirect to the login page
                 } else {
-                    alert(`Error: ${data.error}`);
+                    alert(data.error || "Failed to add quote.");
                 }
             } catch (error) {
                 console.error("Error updating quote:", error);
+                alert("An unexpected error occurred. Please try again.");
             }
         }
-        
+    });
+
+    // Delete quote
+    deleteButton.addEventListener("click", async () => {
+        const quoteId = editQuoteForm.dataset.id; // We pass the id of the quote in the dataset of the form
+
+        if (confirm("Are you sure you want to delete this quote?")) {
+            try {
+                const response = await fetch(`/delete-quote/${quoteId}`, {
+                    method: "DELETE",
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    // Update the client-side memory
+                    const fetchedQuotes = data.quotes;
+                    quotes = fetchedQuotes;
+                    // Re-render the table
+                    renderQuotesTable(quotes);
+                    alert("Quote deleted successfully!"); // TODO Turn this to console.log
+                    editQuoteSection.classList.remove("show");
+                    editQuoteSection.classList.add("hide");
+                    setTimeout(() => {
+                        editQuoteSection.style.display = "none"; //hide edit section
+                        editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                    }, 500);
+                } else if (response.status === 401) {
+                    alert(data.error || "Session expired. Please log in again.");
+                    window.location.href = "/"; // Redirect to the login page
+                } else {
+                    alert(data.error || "Failed to add quote.");
+                }
+            } catch (error) {
+                console.error("Error updating quote:", error);
+                alert("An unexpected error occurred. Please try again.");
+            }
+        }
+    });
+
+    // Cancel editing
+    cancelButton.addEventListener("click", () => {
+        editQuoteSection.classList.remove("show");
+        editQuoteSection.classList.add("hide");
+        setTimeout(() => {
+            editQuoteSection.style.display = "none"; //hide edit section
+            editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+        }, 500);
     });
 
     function renderQuotesTable(quotesToRender = filteredQuotes) {

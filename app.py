@@ -35,8 +35,13 @@ def home():
         db = mongo.cx["quote-base"]
         quotesCollection = db["quotes"]
         
-        #Fetch all quotes for the logged-in user
-        userQuotes = list(quotesCollection.find({"userEmail": userEmail}, {"userEmail": 0}))
+        # Fetch all quotes for the logged-in user
+        userQuotes = list(
+            quotesCollection.find(
+                {"userEmail": userEmail}, 
+                {"userEmail": 0} # Do not include user email in the returned data (security)
+            )
+        )
         for quote in userQuotes:
             quote["_id"] = str(quote["_id"]) # Convert ObjectId to string for JSON serialization
         
@@ -214,7 +219,7 @@ def addQuote():
         userQuotes = list(
             quotesCollection.find(
                 {"userEmail": userEmail}, 
-                {"userEmail": 0}
+                {"userEmail": 0} # Do not include user email in the returned data (security)
             )
         )
         for quoteBlock in userQuotes:
@@ -261,13 +266,58 @@ def editQuote(quoteId):
         userQuotes = list(
             quotesCollection.find(
                 {"userEmail": userEmail},
-                {"userEmail": 0}
+                {"userEmail": 0} # Do not include user email in the returned data (security)
             )
         )
         for quoteBlock in userQuotes:
             quoteBlock["_id"] = str(quoteBlock["_id"]) # Convert ObjectId to string for JSON serialization
         
         return jsonify({"message": "Quote updated successfully!", "quotes": userQuotes}), 200
+        
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": "Something went wrong"}), 500
+
+@app.route("/delete-quote/<quoteId>", methods=["DELETE"])
+def deleteQuote(quoteId):
+    try:
+        # Ensure the user is logged in
+        if "user" not in session:
+            return jsonify({"error": "Unauthorized access. Please log in."}), 401
+        
+        # Connect to MongoDB
+        db = mongo.cx["quote-base"]
+        quotesCollection = db["quotes"]
+        userCollection = db["users"]
+        userEmail = session["user"]
+        
+        # Delete the quote
+        result = quotesCollection.delete_one(
+            {"_id": ObjectId(quoteId), "userEmail": userEmail}
+        )
+        if result.deleted_count == 0:
+            return jsonify({"error": "Quote not found or unauthorized"}), 404
+        
+        # Increment quotesRemaining for the user
+        userCollection.update_one(
+            {"email": userEmail},
+            {
+                "$inc": {"quotesRemaining": 1},
+                "$set": {"updatedAt": datetime.now(timezone.utc)}
+            }
+        )
+        
+        # Fetch updated quotes and return them
+        userQuotes = list(
+            quotesCollection.find(
+                {"userEmail": userEmail},
+                {"userEmail": 0} # Do not include user email in the returned data (security)
+            )
+        )
+        for quoteBlock in userQuotes:
+            quoteBlock["_id"] = str(quoteBlock["_id"]) # Convert ObjectId to string for JSON serialization
+        
+        return jsonify({"message": "Quote deleted successfully!", "quotes": userQuotes}), 200
         
     except Exception as e:
         print(f"Error occurred: {str(e)}")
