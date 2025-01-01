@@ -60,8 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (response.ok) {
                 // Update the client-side memory
-                const fetchedQuotes = data.quotes;
-                quotes = fetchedQuotes;
+                quotes = data.quotes; // Update the client-side memory with the updated quotes
+                filteredQuotes = filteredQuotes = [...quotes]; // Update filteredQuotes if needed
                 // Re-render the table
                 renderQuotesTable(quotes);
                 console.log("quote added to the db");
@@ -132,8 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await response.json();
                 if (response.ok) {
                     // Update the client-side memory
-                    const fetchedQuotes = data.quotes;
-                    quotes = fetchedQuotes;
+                    quotes = data.quotes; // Update the client-side memory with the updated quotes
+                    filteredQuotes = filteredQuotes = [...quotes]; // Update filteredQuotes if needed
                     // Re-render the table
                     renderQuotesTable(quotes);
                     alert("Quote updated successfully!"); // TODO Turn this to console.log
@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(() => {
                         editQuoteSection.style.display = "none"; //hide edit section
                         editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                        quotesTableBody.scrollIntoView({behavior: "smooth", block: "start"});
                     }, 500);
                 } else if (response.status === 401) {
                     alert(data.error || "Session expired. Please log in again.");
@@ -169,8 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await response.json();
                 if (response.ok) {
                     // Update the client-side memory
-                    const fetchedQuotes = data.quotes;
-                    quotes = fetchedQuotes;
+                    quotes = data.quotes; // Update the client-side memory with the updated quotes
+                    filteredQuotes = filteredQuotes = [...quotes]; // Update filteredQuotes if needed
                     // Re-render the table
                     renderQuotesTable(quotes);
                     alert("Quote deleted successfully!"); // TODO Turn this to console.log
@@ -179,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(() => {
                         editQuoteSection.style.display = "none"; //hide edit section
                         editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+                        quotesTableBody.scrollIntoView({behavior: "smooth", block: "start"});
                     }, 500);
                 } else if (response.status === 401) {
                     alert(data.error || "Session expired. Please log in again.");
@@ -200,6 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             editQuoteSection.style.display = "none"; //hide edit section
             editQuoteSection.classList.remove("hide"); //remove hide otherwise edit section won't show next time you click edit
+            quotesTableBody.scrollIntoView({behavior: "smooth", block: "start"});
         }, 500);
     });
 
