@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request, session, redirect
 from flask_pymongo import PyMongo
+import mongomock
 from flask_cors import CORS
 from bson import ObjectId
 
@@ -18,8 +19,16 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent client-side JavaScript a
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes= 30)  # Set session lifetime
 # session.permanent = True  # Mark all sessions as permanent
 
+# Use real MongoDB if not testing
+if app.config.get("TESTING"):
+    mongoClient = mongomock.MongoClient()
+else:
+    from pymongo import MongoClient
+    mongoClient = MongoClient(app.config["MONGO_URI"])
+db = mongoClient["quote-base"]
+app.db = db # This allows app.db to be dynamically set during testing
 
-mongo = PyMongo(app)
+#mongo = PyMongo(app)
 CORS(app)
 
 @app.before_request
@@ -32,7 +41,7 @@ def home():
         userEmail = session["user"]
         
         # Connect to MongoDB
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         quotesCollection = db["quotes"]
         
         # Fetch all quotes for the logged-in user
@@ -65,8 +74,9 @@ def register():
             return jsonify({"error": "Email and password are required"}), 400
         
         # Connect to MongoDB collections
-        db = mongo.cx["quote-base"]
-        userCollection = db["users"]
+        # db = mongo.cx["quote-base"]
+        # Can use dynamically injected db (mock db)
+        userCollection = app.db["users"]
         userCollection.create_index("email", unique=True)
         
         # Check if user already exists
@@ -116,7 +126,7 @@ def login():
             return jsonify({"error": "Email and password are required"}), 400
         
         # Connect to MongoDB collections 
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         userCollection = db["users"]
         
         # Find the user in the database by email
@@ -155,7 +165,7 @@ def getQuoteLimit():
             return jsonify({"error": "Unauthorized access. Please log in."}), 401
         
         # Connect to MongoDB
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         userCollection = db["users"]
         userEmail = session["user"]
         
@@ -195,7 +205,7 @@ def addQuote():
             return jsonify({"error": "Book title, quote, and author are mandatory fields."}), 400
         
         # Connect to MongoDB
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         quotesCollection = db["quotes"]
         userCollection = db["users"]
         userEmail = session["user"]
@@ -279,7 +289,7 @@ def editQuote(quoteId):
         }
         
         # Connect to MongoDB
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         quotesCollection = db["quotes"]
         userEmail = session["user"]
         
@@ -315,7 +325,7 @@ def deleteQuote(quoteId):
             return jsonify({"error": "Unauthorized access. Please log in."}), 401
         
         # Connect to MongoDB
-        db = mongo.cx["quote-base"]
+        # db = mongo.cx["quote-base"]
         quotesCollection = db["quotes"]
         userCollection = db["users"]
         userEmail = session["user"]
