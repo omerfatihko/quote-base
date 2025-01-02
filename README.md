@@ -106,9 +106,7 @@
    cd quote-base
    ```
 
-2. Switch to quote-base-v2.0 branch.
-
-3. Set up a virtual environment and install dependencies:
+2. Set up a virtual environment and install dependencies:
 
    ```bash
    python -m venv venv
@@ -117,7 +115,7 @@
    pip install -r requirements.txt
    ```
 
-4. Set up environment variables: Create a `.env` file based on the provided `.mockenv` file:
+3. Set up environment variables: Create a `.env` file based on the provided `.mockenv` file:
 
    ```env
    FLASK_APP=app.py
@@ -126,13 +124,13 @@
    SECRET_KEY=<your_secret_key>
    ```
 
-5. Run the app:
+4. Run the app:
 
    ```bash
    flask run
    ```
 
-6. Access the app at `http://127.0.0.1:5000`
+5. Access the app at `http://127.0.0.1:5000`
 
 ---
 
