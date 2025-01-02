@@ -1,4 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const logoutButton = document.getElementById("logout");
+
+    //Event listener for logout button
+    if (logoutButton) {
+        logoutButton.addEventListener("click", async () => {
+            try {
+                const response = await fetch("/logout", {method: "GET"});
+
+                if (response.redirected) {
+                    // Redirect to the register/login page
+                    window.location.href = response.url;
+                } else {
+                    console.error("Logout failed");
+                    alert("An error occurred while logging out. Please try again.");
+                }
+            } catch (error) {
+                console.error("Logout error: ", error);
+                alert("An error occurred while logging out. Please try again.");
+            }
+        });
+    }
+
     const inputForm = document.getElementById("add-quote-form");
     const quoteTableBody = document.querySelector("#quotes-table tbody");
 
