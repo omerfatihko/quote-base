@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, render_template, request, session, redirect
-from flask_pymongo import PyMongo
+#from flask_pymongo import PyMongo
 import mongomock
 from flask_cors import CORS
 from bson import ObjectId
@@ -8,16 +8,16 @@ import bcrypt
 from datetime import datetime, timedelta, timezone 
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") # Used for session management
-# app.config["SESSION_COOKIE_SECURE"] = True  # Send cookies only over HTTPS
+app.config["SESSION_COOKIE_SECURE"] = True  # Send cookies only over HTTPS
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent client-side JavaScript access
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes= 30)  # Set session lifetime
-# session.permanent = True  # Mark all sessions as permanent
 
 # Use real MongoDB if not testing
 if app.config.get("TESTING"):
@@ -41,8 +41,7 @@ def home():
         userEmail = session["user"]
         
         # Connect to MongoDB
-        # db = mongo.cx["quote-base"]
-        quotesCollection = db["quotes"]
+        quotesCollection = app.db["quotes"]
         
         # Fetch all quotes for the logged-in user
         userQuotes = list(
@@ -54,7 +53,7 @@ def home():
         for quote in userQuotes:
             quote["_id"] = str(quote["_id"]) # Convert ObjectId to string for JSON serialization
         
-        return render_template("index.html", email=userEmail, quotes= userQuotes)
+        return render_template("index.html", quotes= userQuotes)
     
     return redirect("/") # Redirect to register page if not logged in
 
@@ -70,11 +69,17 @@ def register():
         email = data.get("email")
         password = data.get("password")
         
-        if not email or not password:
-            return jsonify({"error": "Email and password are required"}), 400
+        # Regular expression for email validation
+        emailRegex = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
+
+        # Validation checks
+        if not email or not re.match(emailRegex, email):
+            return jsonify({"error": "Invalid email format"}), 400
+
+        if not password or bool(re.search(r"\s", password)) or len(password) < 8:
+            return jsonify({"error": "Password must be at least 8 characters long and contain no spaces"}), 400
         
         # Connect to MongoDB collections
-        # db = mongo.cx["quote-base"]
         # Can use dynamically injected db (mock db)
         userCollection = app.db["users"]
         userCollection.create_index("email", unique=True)
@@ -126,8 +131,7 @@ def login():
             return jsonify({"error": "Email and password are required"}), 400
         
         # Connect to MongoDB collections 
-        # db = mongo.cx["quote-base"]
-        userCollection = db["users"]
+        userCollection = app.db["users"]
         
         # Find the user in the database by email
         existingUser = userCollection.find_one({"email": email})
