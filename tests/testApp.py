@@ -513,7 +513,7 @@ def testAddQuoteMissingFields(client):
     assert responseJSON["error"] == "Book title, quote, and author are mandatory fields."
 
 def testAddQuoteCharacterSpamLimitReached(client):
-    """Test adding a quote with missing mandatory fields.
+    """Test adding a quote with fields longer than allowed limit.
 
     Args:
         client (_type_): Mock db and client
@@ -630,3 +630,186 @@ def testAddQuoteLimitReached(client):
     # Assertions
     assert response.status_code == 403
     assert responseJSON["error"] == "Quote limit reached. Upgrade to add more quotes."
+
+def testEditQuoteSuccess(client):
+    """Test successful quote update.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user and a quote
+    mockDb["users"].insert_one({"email": "test@example.com", "quotesRemaining": 10})
+    quoteId = mockDb["quotes"].insert_one({
+        "userEmail": "test@example.com",
+        "bookSeries": "Old Series",
+        "bookTitle": "Old Book",
+        "characters": "Old Character",
+        "quote": "Old quote",
+        "author": "Old Author",
+        "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
+    }).inserted_id
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock updated quote data
+    updatedQuoteData = {
+        "bookSeries": "New Series",
+        "bookTitle": "New Book",
+        "characters": "New Character",
+        "quote": "New quote",
+        "author": "New Author",
+    }
+    
+    # Send the PUT request
+    response = client.put(
+        f"/edit-quote/{quoteId}",
+        data=json.dumps(updatedQuoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 200
+    assert responseJSON["message"] == "Quote updated successfully!"
+    updatedQuote = mockDb["quotes"].find_one({"_id": ObjectId(quoteId)})
+    assert updatedQuote["quote"] == "New quote"
+
+def testEditQuoteUnauthorized(client):
+    """Test unauthorized access (user not logged in)
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Mock updated quote data
+    updatedQuoteData = {
+        "bookSeries": "New Series",
+        "bookTitle": "New Book",
+        "characters": "New Character",
+        "quote": "New quote",
+        "author": "New Author",
+    }
+    quoteId = str(ObjectId())
+    
+    # Send the PUT request
+    response = client.put(
+        f"/edit-quote/{quoteId}",
+        data=json.dumps(updatedQuoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 401
+    assert responseJSON["error"] == "Unauthorized access. Please log in."
+
+def testEditQuoteMissingFields(client):
+    """Test updating a quote with missing mandatory fields.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock updated quote data with missing fields
+    updatedQuoteData = {
+        "bookSeries": "New Series",
+        "bookTitle": "  ", # only white space, should not be accepted
+        "characters": "New Character",
+        "quote": "  ",
+        "author": " ",
+    }
+    quoteId = str(ObjectId())
+    
+    # Send the PUT request
+    response = client.put(
+        f"/edit-quote/{quoteId}",
+        data=json.dumps(updatedQuoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 400
+    assert responseJSON["error"] == "Book title, quote, and author are mandatory fields."
+
+def testEditQuoteCharacterSpamLimitReached(client):
+    """Test updating a quote with fields longer than allowed limit.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock updated quote data
+    updatedQuoteData = {
+        "bookSeries": "New Series",
+        "bookTitle": "x" * (characterSpamLimit + 1),
+        "characters": "New Character",
+        "quote": "New quote",
+        "author": "New Author",
+    }
+    quoteId = str(ObjectId())
+    
+    # Send the PUT request
+    response = client.put(
+        f"/edit-quote/{quoteId}",
+        data=json.dumps(updatedQuoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 400
+    assert responseJSON["error"] == f"Any field should not be longer than {characterSpamLimit} characters."
+
+def testEditQuoteNotFound(client):
+    """Test updating a non-existing quote..
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user
+    mockDb["users"].insert_one({"email": "test@example.com", "quotesRemaining": 10})
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock updated quote data
+    updatedQuoteData = {
+        "bookSeries": "New Series",
+        "bookTitle": "New Book",
+        "characters": "New Character",
+        "quote": "New quote",
+        "author": "New Author",
+    }
+    quoteId = str(ObjectId())
+    
+    # Send the PUT request
+    response = client.put(
+        f"/edit-quote/{quoteId}",
+        data=json.dumps(updatedQuoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 404
+    assert responseJSON["error"] == "Quote not found or unauthorized"

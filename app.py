@@ -208,13 +208,12 @@ def addQuote():
         # Required fields
         if not bookTitle or not quote or not author:
             return jsonify({"error": "Book title, quote, and author are mandatory fields."}), 400
-        # Spam protection (data longer than specified characters )
+        # Spam protection (data longer than specified characters)
         for ele in [bookSeries, bookTitle, characters, quote, author]:
             if ele and len(ele) > characterSpamLimit:
                 return jsonify({"error": f"Any field should not be longer than {characterSpamLimit} characters."}), 400
         
         # Connect to MongoDB
-        # db = mongo.cx["quote-base"]
         quotesCollection = app.db["quotes"]
         userCollection = app.db["users"]
         userEmail = session["user"]
@@ -289,17 +288,25 @@ def editQuote(quoteId):
         # Parse incoming JSON data
         data = request.get_json()
         updatedFields = {
-            "bookSeries": data.get("bookSeries") if data.get("bookSeries") else data.get("bookTitle"),
-            "bookTitle": data.get("bookTitle"),
-            "characters": data.get("characters") if data.get("characters") else data.get("author"),
-            "quote": data.get("quote"),
-            "author": data.get("author"),
+            "bookSeries": data.get("bookSeries").strip() if data.get("bookSeries").strip() else data.get("bookTitle").strip(),
+            "bookTitle": data.get("bookTitle").strip(),
+            "characters": data.get("characters").strip() if data.get("characters").strip() else data.get("author").strip(),
+            "quote": data.get("quote").strip(),
+            "author": data.get("author").strip(),
             "updatedAt": datetime.now(timezone.utc),
         }
         
+        # Basic validations
+        # Required fields
+        if not updatedFields["bookTitle"] or not updatedFields["quote"] or not updatedFields["author"]:
+            return jsonify({"error": "Book title, quote, and author are mandatory fields."}), 400
+        # Spam protection (data longer than specified characters)
+        for value in updatedFields.values():
+            if value and not isinstance(value, datetime) and len(value) > characterSpamLimit:
+                return jsonify({"error": f"Any field should not be longer than {characterSpamLimit} characters."}), 400
+        
         # Connect to MongoDB
-        # db = mongo.cx["quote-base"]
-        quotesCollection = db["quotes"]
+        quotesCollection = app.db["quotes"]
         userEmail = session["user"]
         
         # Update the quote
