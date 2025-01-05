@@ -383,7 +383,7 @@ def testGetQuoteLimitUserNotFound(client):
     assert responseJSON["error"] == "User not found. Please log in again."
 
 def testGetQuoteLimitServerError(client):
-    """Test handling an unexpected server error
+    """Test handling an unexpected server error. An exemplary test to see how overriding works.
 
     Args:
         client (_type_): Mock db and client
@@ -451,7 +451,7 @@ def testAddQuoteSuccess(client):
     assert mockDb["users"].find_one({"email": "test@example.com"})["quotesRemaining"] == 9
 
 def testAddQuoteUnauthorized(client):
-    """Test accessing the endpoint without logging in
+    """Test unauthorized access (user not logged in)
 
     Args:
         client (_type_): Mock db and client
@@ -778,7 +778,7 @@ def testEditQuoteCharacterSpamLimitReached(client):
     assert responseJSON["error"] == f"Any field should not be longer than {characterSpamLimit} characters."
 
 def testEditQuoteNotFound(client):
-    """Test updating a non-existing quote..
+    """Test updating a non-existing quote.
 
     Args:
         client (_type_): Mock db and client
@@ -813,3 +813,133 @@ def testEditQuoteNotFound(client):
     # Assertions
     assert response.status_code == 404
     assert responseJSON["error"] == "Quote not found or unauthorized"
+
+def testDeleteQuoteSuccess(client):
+    """Test successful quote deletion.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user and two quote
+    mockDb["users"].insert_one({
+        "email": "test@example.com",
+        "quotesRemaining": 10,
+        "totalQuotes": 100,
+        "password": "hashedPassword",
+        "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
+    })
+    quoteIdFirst = mockDb["quotes"].insert_one({
+        "userEmail": "test@example.com",
+        "bookSeries": "First Series",
+        "bookTitle": "First Book",
+        "characters": "First Character",
+        "quote": "First quote",
+        "author": "First Author",
+        "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
+    }).inserted_id
+    quoteIdSecond = mockDb["quotes"].insert_one({
+        "userEmail": "test@example.com",
+        "bookSeries": "Second Series",
+        "bookTitle": "Second Book",
+        "characters": "Second Character",
+        "quote": "Second quote",
+        "author": "Second Author",
+        "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
+    }).inserted_id
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Send the DELETE request
+    response = client.delete(f"/delete-quote/{quoteIdSecond}")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 200
+    assert responseJSON["message"] == "Quote deleted successfully!"
+    assert mockDb["quotes"].find_one({"_id": ObjectId(quoteIdSecond)}) is None  # Verify quote is deleted
+    assert len(responseJSON["quotes"]) == 1  # Check if the quote list has one quote
+    assert mockDb["users"].find_one({"email": "test@example.com"})["quotesRemaining"] == 11
+
+def testDeleteQuoteUnauthorized(client):
+    """Test unauthorized access (user not logged in)
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    quoteId = str(ObjectId())
+    # Send the DELETE request without logging in
+    response = client.delete(f"/delete-quote/{quoteId}")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 401
+    assert responseJSON["error"] == "Unauthorized access. Please log in."
+
+def testDeleteQuoteNotFound(client):
+    """Test deleting a non-existing quote.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user
+    mockDb["users"].insert_one({"email": "test@example.com", "quotesRemaining": 10})
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    quoteId = str(ObjectId())
+    # Send the DELETE request
+    response = client.delete(f"/delete-quote/{quoteId}")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 404
+    assert responseJSON["error"] == "Quote not found or unauthorized"
+
+def testDeleteQuoteServerError(client, monkeypatch):
+    """Test handling an unexpected server error. An exemplary test to see how monkeypatch is used.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user and a quote
+    mockDb["users"].insert_one({"email": "test@example.com"})
+    quoteId = mockDb["quotes"].insert_one({
+        "userEmail": "test@example.com",
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "Test Quote",
+        "author": "Test Author",
+    }).inserted_id
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Simulate an exception during the delete operation
+    def mockDeleteOne(*args, **kwargs):
+        raise Exception("Mocked delete error")
+    monkeypatch.setattr(mockDb["quotes"], "delete_one", mockDeleteOne)
+    
+    # Send the DELETE request
+    response = client.delete(f"/delete-quote/{quoteId}")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 500
+    assert responseJSON["error"] == "Something went wrong"

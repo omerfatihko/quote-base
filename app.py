@@ -342,8 +342,8 @@ def deleteQuote(quoteId):
         
         # Connect to MongoDB
         # db = mongo.cx["quote-base"]
-        quotesCollection = db["quotes"]
-        userCollection = db["users"]
+        quotesCollection = app.db["quotes"]
+        userCollection = app.db["users"]
         userEmail = session["user"]
         
         # Delete the quote
@@ -385,5 +385,3 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
-# TODO test connection without adding any data
