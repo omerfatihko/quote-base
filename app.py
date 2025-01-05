@@ -27,6 +27,7 @@ else:
     mongoClient = MongoClient(app.config["MONGO_URI"])
 db = mongoClient["quote-base"]
 app.db = db # This allows app.db to be dynamically set during testing
+characterSpamLimit = 2000
 
 #mongo = PyMongo(app)
 CORS(app)
@@ -197,20 +198,25 @@ def addQuote():
         
         # Parse incoming JSON data
         data = request.get_json()
-        bookSeries = data.get("bookSeries")
-        bookTitle = data.get("bookTitle")
-        characters = data.get("characters")
-        quote = data.get("quote")
-        author = data.get("author")
+        bookSeries = data.get("bookSeries").strip()
+        bookTitle = data.get("bookTitle").strip()
+        characters = data.get("characters").strip()
+        quote = data.get("quote").strip()
+        author = data.get("author").strip()
         
         # Basic validations
+        # Required fields
         if not bookTitle or not quote or not author:
             return jsonify({"error": "Book title, quote, and author are mandatory fields."}), 400
+        # Spam protection (data longer than specified characters )
+        for ele in [bookSeries, bookTitle, characters, quote, author]:
+            if ele and len(ele) > characterSpamLimit:
+                return jsonify({"error": f"Any field should not be longer than {characterSpamLimit} characters."}), 400
         
         # Connect to MongoDB
         # db = mongo.cx["quote-base"]
-        quotesCollection = db["quotes"]
-        userCollection = db["users"]
+        quotesCollection = app.db["quotes"]
+        userCollection = app.db["users"]
         userEmail = session["user"]
         
         # Get user data to check quotesRemaining

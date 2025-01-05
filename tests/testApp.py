@@ -1,9 +1,10 @@
 import pytest
 import json
-from app import app # Import Flask app
+from app import app, characterSpamLimit # Import Flask app
 import mongomock # import mongomock
 from bson import ObjectId
 import bcrypt
+from datetime import datetime, timezone
 
 @pytest.fixture
 def client():
@@ -174,7 +175,7 @@ def testHomeWithValidSession(client):
     """    
     client, mockDb = client # Unpack client and mock database
     
-    # Mock session data
+    # Simulate logged-in session
     with client.session_transaction() as session:
         session["user"] = "test@example.com"
     
@@ -403,3 +404,229 @@ def testGetQuoteLimitServerError(client):
     # Assertions
     assert response.status_code == 500
     assert responseJSON["error"] == "An error occurred. Please try again."
+
+def testAddQuoteSuccess(client):
+    """Test successful addition of a quote.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user with remaining quote limit
+    mockDb["users"].insert_one({
+        "email": "test@example.com",
+        "quotesRemaining": 10,
+        "totalQuotes": 100,
+        "password": "hashedPassword",
+        "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
+    })
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock quote data
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    }
+    
+    # Send the POST request
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 200
+    assert responseJSON["message"] == "Quote added successfully!"
+    assert len(responseJSON["quotes"]) == 1  # Check if the quote list has one quote
+    assert mockDb["users"].find_one({"email": "test@example.com"})["quotesRemaining"] == 9
+
+def testAddQuoteUnauthorized(client):
+    """Test accessing the endpoint without logging in
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Mock quote data
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    }
+    
+    # Send the POST request without logging in
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 401
+    assert responseJSON["error"] == "Unauthorized access. Please log in."
+
+def testAddQuoteMissingFields(client):
+    """Test adding a quote with missing mandatory fields.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock quote data with missing fields
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "",
+        "characters": "Test Character",
+        "quote": "",
+        "author": "",
+    }
+    
+    # Send the POST request
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 400
+    assert responseJSON["error"] == "Book title, quote, and author are mandatory fields."
+
+def testAddQuoteCharacterSpamLimitReached(client):
+    """Test adding a quote with missing mandatory fields.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock quote data with fields longer than limit
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "x" * (characterSpamLimit + 1),
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    }
+    
+    # Send the POST request
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 400
+    assert responseJSON["error"] == f"Any field should not be longer than {characterSpamLimit} characters."
+
+def testAddQuoteDuplicate(client):
+    """Test adding a duplicate quote.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user and a quote
+    mockDb["users"].insert_one({
+        "email": "test@example.com",
+        "quotesRemaining": 10,
+    })
+    mockDb["quotes"].insert_one({
+        "userEmail": "test@example.com",
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    })
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock duplicate quote data
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    }
+    
+    # Send the POST request
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 400
+    assert responseJSON["error"] == "Duplicate quote detected."
+
+def testAddQuoteLimitReached(client):
+    """Test adding a quote when the user's quote limit is reached.
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Insert a user with no remaining quote limit
+    mockDb["users"].insert_one({
+        "email": "test@example.com",
+        "quotesRemaining": 0,
+    })
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Mock quote data
+    quoteData = {
+        "bookSeries": "Test Series",
+        "bookTitle": "Test Book",
+        "characters": "Test Character",
+        "quote": "This is a test quote.",
+        "author": "Test Author",
+    }
+    
+    # Send the POST request
+    response = client.post(
+        "/add-quote",
+        data=json.dumps(quoteData),
+        content_type="application/json"
+    )
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 403
+    assert responseJSON["error"] == "Quote limit reached. Upgrade to add more quotes."
