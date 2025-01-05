@@ -169,8 +169,7 @@ def getQuoteLimit():
             return jsonify({"error": "Unauthorized access. Please log in."}), 401
         
         # Connect to MongoDB
-        # db = mongo.cx["quote-base"]
-        userCollection = db["users"]
+        userCollection = app.db["users"]
         userEmail = session["user"]
         
         # Fetch user details

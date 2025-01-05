@@ -315,3 +315,91 @@ def testLoginWrongPassword(client):
     
     assert response.status_code == 400
     assert responseJSON["error"] == "Invalid email or password"
+
+def testGetQuoteLimitSuccess(client):
+    """Test successful fetching of quote limits for a logged-in user
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Mock user data
+    email = "test@example.com"
+    mockDb["users"].insert_one({
+        "email": email,
+        "quotesRemaining": 73,
+        "totalQuotes": 100
+    })
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = email
+    
+    # Send GET request to the endpoint
+    response = client.get("/get-quote-limit")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 200
+    assert responseJSON["remainingQuotes"] == 73
+    assert responseJSON["totalQuotes"] == 100
+
+def testGetQuoteLimitUnauthorized(client):
+    """Test accessing the endpoint without logging in
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Send GET request without a session
+    response = client.get("/get-quote-limit")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 401
+    assert responseJSON["error"] == "Unauthorized access. Please log in."
+
+def testGetQuoteLimitUserNotFound(client):
+    """Test accessing the endpoint when the user is not in the database
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate a session with a non-existent user
+    with client.session_transaction() as session:
+        session["user"] = "nonexistent@example.com"
+    
+    # Send GET request
+    response = client.get("/get-quote-limit")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 401
+    assert responseJSON["error"] == "User not found. Please log in again."
+
+def testGetQuoteLimitServerError(client):
+    """Test handling an unexpected server error
+
+    Args:
+        client (_type_): Mock db and client
+    """
+    client, mockDb = client # Unpack client and mock database
+    
+    # Simulate logged-in session
+    with client.session_transaction() as session:
+        session["user"] = "test@example.com"
+    
+    # Simulate a server error by causing a database failure (by overriding find_one)
+    mockDb["users"].find_one = lambda *args, **kwargs: (_ for _ in ()).throw(Exception("Mocked DB error"))
+    
+    # Send GET request
+    response = client.get("/get-quote-limit")
+    responseJSON = response.get_json()
+    
+    # Assertions
+    assert response.status_code == 500
+    assert responseJSON["error"] == "An error occurred. Please try again."
